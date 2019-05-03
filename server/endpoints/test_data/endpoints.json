@@ -1,0 +1,5 @@
+[{
+    "projectId": "project_id_endpoints",
+    "_id": "enpoints_id",
+    "endpoints": "nlu:\n   url: http://nlu"
+}]

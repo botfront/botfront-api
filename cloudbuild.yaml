@@ -1,0 +1,32 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ "build",
+          "-t", "gcr.io/${PROJECT_ID}/botfront-api:$TAG_NAME",
+          "-t", "gcr.io/${PROJECT_ID}/botfront-api:latest",
+          "-t", "botfront/botfront-api:$TAG_NAME",
+          "-t", "botfront/botfront-api:latest",
+          "."]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ "login", "-u", "$DOCKER_USERNAME", "-p", "$DOCKER_PASSWORD"]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ "push", "botfront/botfront-api:$TAG_NAME"]
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ "push", "botfront/botfront-api:latest"]
+
+- name: 'gcr.io/cloud-builders/kubectl'
+  args:
+  - set
+  - image
+  - deployment
+  - botfront-api
+  - botfront-api-base=gcr.io/${PROJECT_ID}/botfront-api:$TAG_NAME
+  - --namespace
+  - ${_NAMESPACE}
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_COMPUTE_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_CONTAINER_CLUSTER}'
+
+images:
+- "gcr.io/${PROJECT_ID}/botfront-api:latest"
+- "gcr.io/${PROJECT_ID}/botfront-api:$TAG_NAME"
+
