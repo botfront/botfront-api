@@ -23,6 +23,29 @@
           {
             "sequence": [
               {
+                "content": "text: yes"
+              }
+            ],
+            "lang": "en"
+          },
+          {
+            "sequence": [
+              {
+                "content": "text: oui"
+              }
+            ],
+            "lang": "fr"
+          }
+        ],
+        "match": null,
+        "followUp": null,
+        "key": "utter_yes"
+      },
+      {
+        "values": [
+          {
+            "sequence": [
+              {
                 "content": "text: English message"
               }
             ],

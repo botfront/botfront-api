@@ -10,7 +10,6 @@
     "licenses:summary": "license-checker --summary",
     "licenses:csv": "license-checker --csv --out botfront-api-licenses.csv"
   },
-  
   "dependencies": {
     "axios": "^0.18.0",
     "body-parser": "^1.18.3",

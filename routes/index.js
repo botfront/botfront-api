@@ -7,6 +7,8 @@ const {
     responseFromCriteriaValidator,
     getAllResponses,
     allResponsesValidator,
+    nlg,
+    nlgValidator,
 } = require('../server/bot_response/bot_response.controller')
 
 const utteranceCtrl = require('../server/utterance/utterance.controller')
@@ -25,6 +27,9 @@ router.get('/project/:project_id/template/key/:name/lang/:lang',
 
 router.get('/project/:project_id/response/name/:name/lang/:lang',
     responseByNameValidator, getResponseByName);
+
+router.post('/project/:project_id/nlg',
+    nlgValidator, nlg);
 
 router.post('/project/:project_id/response',
     responseFromCriteriaValidator, getResponseFromCriteria);

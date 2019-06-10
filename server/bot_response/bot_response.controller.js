@@ -21,7 +21,48 @@ exports.responseByNameValidator = [
     // check('name', 'must start with \'utter_\'').matches(/^utter_/),
     query('metadata', 'must be 1 or 0 if set').optional().isBoolean(),
 ]
+exports.nlgValidator = [
+    // check('lang', 'must be a language code (e.g. "fr" or "en")')
+    //     .isString().isLength({min: 2, max: 2}),
+    // check('name', 'must start with \'utter_\'').matches(/^utter_/),
+    // query('metadata', 'must be 1 or 0 if set').optional().isBoolean(),
+    body('template', 'is required and must start with utter_')
+        .isString()
+        .custom((value) => value.startsWith('utter_')),
+    body('arguments', 'arguments should be an object and have a \'language\''+
+         ' property set to a language code')
+        .custom((value) => value && value.language),
+]
 
+exports.nlg = async function(req, res) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
+
+    const { project_id: projectId } = req.params;
+    const { template, arguments: { language } } = req.body;
+    
+    try {
+        const project = await Project
+            .findOne(addKeyToQuery({ _id: projectId }, req))
+            .select({ templates: { $elemMatch: { key: template } } })
+            .lean()
+            .exec()
+        
+        const responses = project.templates || [];
+        if (!responses.length) throw { code: 404, error: 'not_found' };
+        const localizedValue = responses[0].values.find(v => v.lang === language);
+        if (!localizedValue || !localizedValue.sequence.length) throw {
+            code: 404, error: 'not_found',
+        };
+
+        return res.status(200).json(localizedValue.sequence.map(t => {
+            return formatSequence(t, template)
+        }))
+    
+    } catch (err) {
+        return res.status(err.code || 500).json(err);
+    }
+}
 exports.getResponseByName = async function(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });

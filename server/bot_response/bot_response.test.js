@@ -17,6 +17,94 @@ before(function(done) {
     });
 });
 
+describe('## NLG API', () => {
+    describe('# POST /project/{projectId}/nlg', function() {
+        it('should find a response for utter_yes', function (done) {
+            const body = {
+                template: 'utter_yes',
+                arguments: { language: 'en'},
+                channel: 'webchat',
+                tracker: {},
+            }
+
+            Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
+                .then(project => {
+                    request(app)
+                        .post('/project/5CmYdmu2Aanva3ZAy/nlg')
+                        .send(body)
+                        .expect(httpStatus.OK)
+                        .then(res => {
+                            expect(res.body[0].text).to.equal('yes')
+                            done()
+                        })
+                        .catch(done);
+                })
+        });
+
+        it('should return an error when language is not set', function (done) {
+            const body = {
+                template: 'utter_yes',
+                arguments: { },
+                channel: 'webchat',
+                tracker: {},
+            }
+
+            Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
+                .then(project => {
+                    request(app)
+                        .post('/project/5CmYdmu2Aanva3ZAy/nlg')
+                        .send(body)
+                        .expect(httpStatus.UNPROCESSABLE_ENTITY)
+                        .then((res) => {
+                            done()
+                        })
+                        .catch(done);
+                })
+        });
+
+        it('should return an error when arguments is not set', function (done) {
+            const body = {
+                template: 'utter_yes',
+                channel: 'webchat',
+                tracker: {},
+            }
+
+            Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
+                .then(project => {
+                    request(app)
+                        .post('/project/5CmYdmu2Aanva3ZAy/nlg')
+                        .send(body)
+                        .expect(httpStatus.UNPROCESSABLE_ENTITY)
+                        .then((res) => {
+                            done()
+                        })
+                        .catch(done);
+                })
+        });
+
+        it('should return an error when template does not start with utter', function (done) {
+            const body = {
+                template: 'yes',
+                arguments: { language: 'en'},
+                channel: 'webchat',
+                tracker: {},
+            }
+
+            Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
+                .then(project => {
+                    request(app)
+                        .post('/project/5CmYdmu2Aanva3ZAy/nlg')
+                        .send(body)
+                        .expect(httpStatus.UNPROCESSABLE_ENTITY)
+                        .then((res) => {
+                            done()
+                        })
+                        .catch(done);
+                })
+        });
+    })
+})
+
 describe('## Bot responses API', () => {
     describe('# GET /project/{projectId}/response/{name}/lang/{lang}', () => {
         it('should succeed retrieving existing key', done => {
@@ -278,6 +366,8 @@ describe('## Bot responses API', () => {
                 .catch(done);
         });
     });
+
+  
     describe('# GET /project/{projectId}/responses/', function() {
 
         it('should get all responses', function (done) {
