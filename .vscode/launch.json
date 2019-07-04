@@ -14,7 +14,7 @@
             "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
             "env": {
                 "NODE_ENV": "test",
-                "MONGO_URL": "mongodb://localhost:3001/meteor",
+                "MONGO_URL": "mongodb://dummy/for-monk",
                 "PORT": "8081"
             },
             "args": [
