@@ -30,10 +30,4 @@ const utterance = new Schema(
     },
 )
 
-utterance.pre('save', function(next) {
-    if (this.entities){
-        this.entities = this.entities.filter(e => e.extractor !== 'ner_duckling_http')
-    }
-    next();
-})
 module.exports = mongoose.model('Utterance', utterance, 'activity');
