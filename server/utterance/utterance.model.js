@@ -23,6 +23,8 @@ const utterance = new Schema(
         intent: { type: String, required: false },
         entities: { type: [entity], required: false },
         confidence: { type: Number, required: true },
+        validated: { type: Boolean, required: false },
+        ooS: { type: Boolean, required: false },
         createdAt: { type: Date, required: true, default: Date.now },
         updatedAt: { type: Date, required: true, default: Date.now },
     },

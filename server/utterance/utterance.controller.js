@@ -7,16 +7,20 @@ async function create(req, res) {
         if (!model) throw { error: 'An existing modelId is required' };
         const { modelId, text } = req.body;
         const existingExample = await Utterance.findOne({ modelId, text }, { _id: 1 });
-        if (existingExample) throw {
-            error: 'An example with that text already exists in the collection',
-        };
-           
-        const utterance = new Utterance(req.body);
-        const saveResult = await utterance.save();
-        return res.status(200).json(saveResult);
+
+        let utterance = { ...new Utterance(req.body) };
+        if (existingExample) delete utterance._doc._id;
+        
+        Utterance.findOneAndUpdate({ modelId, text }, utterance._doc, { upsert: true },
+            (err) => {
+                if (err) return res.status(400).json({
+                    error: `${err.name} (${err.codeName}): ${err.errmsg}`,
+                });
+                return res.status(200).json(`Logged '${text}'`);
+            });
 
     } catch (err) {
-        res.status(400).json(err);
+        res.status(400).json({ error: `${err.name} (${err.codeName}): ${err.errmsg}` });
     }
 }
 
