@@ -23,15 +23,11 @@ const utterance = new Schema(
         intent: { type: String, required: false },
         entities: { type: [entity], required: false },
         confidence: { type: Number, required: true },
+        validated: { type: Boolean, required: false },
+        ooS: { type: Boolean, required: false },
         createdAt: { type: Date, required: true, default: Date.now },
         updatedAt: { type: Date, required: true, default: Date.now },
     },
 )
 
-utterance.pre('save', function(next) {
-    if (this.entities){
-        this.entities = this.entities.filter(e => e.extractor !== 'ner_duckling_http')
-    }
-    next();
-})
 module.exports = mongoose.model('Utterance', utterance, 'activity');

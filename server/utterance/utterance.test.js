@@ -72,25 +72,6 @@ describe('## Utterance API', () => {
                 .catch(done);
         });
 
-        it('should fail adding a valid utterance with duplicate text', done => {
-            request(app)
-                .post('/log-utterance')
-                .send({
-                    text: 'blsbla',
-                    intent: 'test',
-                    modelId: '123',
-                    confidence: 0.99,
-                })
-                .expect(httpStatus.BAD_REQUEST)
-                .then(res => {
-                    expect(res.body).to.deep.equal({
-                        error: 'An example with that text already exists in the collection',
-                    });
-                    done();
-                })
-                .catch(done);
-        });
-
         it('should fail adding utterance with invalid entity', done => {
             const payload = {
                 text: 'sadfas',
@@ -104,17 +85,11 @@ describe('## Utterance API', () => {
                 modelId: '123',
                 confidence: 0.99,
             };
-            const msg =
-                'Utterance validation failed: entities.0.end: Path `end`' +
-                ' is required., entities.0.start: Path `start` is required.';
             request(app)
                 .post('/log-utterance')
                 .send(payload)
                 .expect(httpStatus.BAD_REQUEST)
-                .then(res => {
-                    expect(res.body.message).to.equal(msg);
-                    done();
-                })
+                .then(() => done())
                 .catch(done);
         });
 
