@@ -4,12 +4,16 @@ Web services for the botfront platform.
 
 See [Botfront](https://github.com/botfront/botfront) for more details.
 
+## License
 
-## Release process
+Copyright (C) 2019 9300-2038 Quebec Inc.
 
-EE versions are linked to CE versions a follows: `0.15.1-ee.2` where `2` is the third version tagged on ee after `0.15.1`
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-1. Pull from `upstream/master`
-2. Run `npx standard-version --release-as 0.15.1-ee.2 --dry-run` and verify that it looks good.
-3. Then run `npx standard-version --release-as 0.15.1-ee.2`
-4. Push the tags: `git push --follow-tags origin master`
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+[GNU Affero General Public License](https://github.com/botfront/botfront-api/blob/master/LICENSE) for more details.
