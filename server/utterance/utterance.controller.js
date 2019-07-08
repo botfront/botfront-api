@@ -9,6 +9,8 @@ async function create(req, res) {
         const existingExample = await Utterance.findOne({ modelId, text }, { _id: 1 });
 
         let utterance = { ...new Utterance(req.body) }._doc;
+        if (!req.body.intent) utterance.intent = null;
+        
         if (existingExample) delete utterance._id;
         if (utterance.entities) {
             utterance.entities = utterance.entities.filter(
