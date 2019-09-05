@@ -3,12 +3,19 @@ const { body, validationResult, query } = require('express-validator/check');
 const { addKeyToQuery } = require('../utils')
 const Project = require('../project/project.model');
 
-function formatSequence(t, templateKey, metadata = 0) {
+function subText(text, slots) {
+    const slotSubs = Object.entries(slots).map(s => [`{${s[0]}}`, s[1] || '']);
+    let subbedText = text;
+    slotSubs.forEach(s => subbedText = subbedText.replace(s[0], s[1]));
+    return subbedText;
+}
+
+function formatSequence(t, templateKey, metadata = 0, slots = {}) {
     const doc = yaml.safeLoad(t.content);
     //TODO validate against schema https://github.com/nodeca/js-yaml/
     if (parseInt(metadata) !== 1)  delete doc.metadata;
-    if (typeof doc === 'object') return doc;
-    else if (typeof doc === 'string') return { text: doc };
+    if (typeof doc === 'object') return { ...doc, text: subText(doc.text, slots) };
+    else if (typeof doc === 'string') return { text: subText(doc, slots) };
     else throw {
         error: 'wrong_message_format',
         code: 400,
@@ -39,7 +46,7 @@ exports.nlg = async function(req, res) {
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
 
     const { project_id: projectId } = req.params;
-    const { template, arguments: { language } } = req.body;
+    const { template, arguments: { language }, tracker: { slots } } = req.body;
     
     try {
         const project = await Project
@@ -56,7 +63,7 @@ exports.nlg = async function(req, res) {
         };
 
         return res.status(200).json(localizedValue.sequence.map(t => {
-            return formatSequence(t, template)
+            return formatSequence(t, template, 0, slots)
         }))
     
     } catch (err) {

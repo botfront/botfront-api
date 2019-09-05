@@ -1,5 +1,6 @@
 const { checkApiKeyAgainstProject } = require('../server/utils');
 const db = require('monk')(process.env.MONGO_URL);
+const { logUtterancesFromTracker } = require('../server/utterance/utterance.controller');
 
 exports.getSenderEventCount = function(req, res) {
     const dialogues = db.get('conversations', { castIds: false });
@@ -52,8 +53,9 @@ exports.insertConversation = function(req, res) {
         .catch(error => res.status(error.code || 500).json(error));
 };
 
-exports.updateConversation = function(req, res) {
+exports.updateConversation = async function(req, res) {
     const { project_id: projectId, sender_id: senderId } = req.params;
+    logUtterancesFromTracker(projectId, req);
     checkApiKeyAgainstProject(projectId, req)
         .then(() => {
             const tracker = req.body;
