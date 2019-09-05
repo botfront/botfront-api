@@ -1,6 +1,6 @@
 const Model = require('../nlu_model/model')
 const Utterance = require('./utterance.model')
-const Project = require('../server/project/project.model');
+const Project = require('../project/project.model');
 
 async function logUtterance(modelId, parseData, callback) {
     const { text } = parseData;
