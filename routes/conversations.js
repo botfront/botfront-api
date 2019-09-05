@@ -1,8 +1,6 @@
 const { checkApiKeyAgainstProject } = require('../server/utils');
 const db = require('monk')(process.env.MONGO_URL);
-const Model = require('../server/nlu_model/model');
-const Project = require('../server/project/project.model');
-const { logUtterance } = require('../server/utterance/utterance.controller');
+const { logUtterancesFromTracker } = require('../server/utterance/utterance.controller');
 
 exports.getSenderEventCount = function(req, res) {
     const dialogues = db.get('conversations', { castIds: false });
@@ -57,26 +55,7 @@ exports.insertConversation = function(req, res) {
 
 exports.updateConversation = async function(req, res) {
     const { project_id: projectId, sender_id: senderId } = req.params;
-
-    try {
-        const userUtterances = req.body.events
-            .filter(event => event.event === 'user' && event.text.indexOf('/') !== 0);
-        if (userUtterances.length) { // there should only be one event here, really
-            const { language } = userUtterances[0].parse_data;
-            const project = await Project.findOne( { _id: projectId }, { nlu_models: 1 }).lean();
-            const model = await Model.findOne({
-                language,
-                _id: { $in: project.nlu_models },
-            }, { _id: 1 }).lean();
-            userUtterances.forEach(u => logUtterance(
-                model._id,
-                u.parse_data,
-                (_u, e) => e && console.log('Logging failed: ', e),
-            ));
-        }
-    } catch (e) {
-        console.log('Logging failed: ', e)
-    }
+    logUtterancesFromTracker(projectId, req);
     checkApiKeyAgainstProject(projectId, req)
         .then(() => {
             const tracker = req.body;
