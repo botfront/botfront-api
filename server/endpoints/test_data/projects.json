@@ -4,6 +4,9 @@
   },
   {
     "_id": "project_without_endpoints"
+  },
+  {
+    "_id": "project_id_full_endpoints"
   }
 ]
 

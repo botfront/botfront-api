@@ -44,8 +44,8 @@ router.get('/project/:project_id/conversations/:sender_id/:event_count', getSend
 router.post('/project/:project_id/conversations/:sender_id/insert', insertConversation);
 router.post('/project/:project_id/conversations/:sender_id/update', updateConversation);
 router.get('/project/:project_id/rules/', getProjectRules);
-router.get('/project/:project_id/credentials/', getProjectCredentials);
-router.get('/project/:project_id/endpoints/', getProjectEndpoints);
+router.get('/project/:project_id/credentials/:environment?/', getProjectCredentials);
+router.get('/project/:project_id/endpoints/:environment?/', getProjectEndpoints);
 router.get('/project/:project_id/models/published', getPublishedModels);
 router.get('/health-check', (req, res) => res.status(200).json());
 router.post('/log-utterance', utteranceCtrl.create);
