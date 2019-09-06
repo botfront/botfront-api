@@ -58,6 +58,31 @@ describe('## Endpoints', () => {
                 })
                 .catch(done);
         });
+
+        it('Should return production in yaml', done => {
+            request(app)
+                .get('/project/project_id_full_endpoints/endpoints/production?output=yaml')
+                .expect(httpStatus.OK)
+                .then(res => {
+                    expect(res.text).to.equal('environment: production');
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('Should return development in json with legacy request', done => {
+            request(app)
+                .get('/project/project_id_full_endpoints/endpoints/')
+                .expect(httpStatus.OK)
+                .then(res => {
+                    expect(res.body).to.deep.equal({
+                        environment: 'development',
+                    });
+                    done();
+                })
+                .catch(done);
+        });
+
     });
 });
 

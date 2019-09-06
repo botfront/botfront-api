@@ -58,5 +58,30 @@ describe('## Credentials', () => {
                 })
                 .catch(done);
         });
+
+        it('Should return production in yaml', done => {
+            request(app)
+                .get('/project/project_id_full_creds/credentials/production?output=yaml')
+                .expect(httpStatus.OK)
+                .then(res => {
+                    expect(res.text).to.equal('environment: production');
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('Should return development in json with legacy request', done => {
+            request(app)
+                .get('/project/project_id_full_creds/credentials/')
+                .expect(httpStatus.OK)
+                .then(res => {
+                    expect(res.body).to.deep.equal({
+                        environment: 'development',
+                    });
+                    done();
+                })
+                .catch(done);
+        });
+
     });
 })
