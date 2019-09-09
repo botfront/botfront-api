@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.15.6](https://github.com/botfront/botfront-api/compare/v0.15.1...v0.15.6) (2019-09-09)
+
+
+### Bug Fixes
+
+* import path ([9287e40](https://github.com/botfront/botfront-api/commit/9287e40))
+
+
+### Features
+
+* **environments:** add parameter to endpoints and credentials endpoint ([6b3081d](https://github.com/botfront/botfront-api/commit/6b3081d))
+* add support for {slot} notation subtitution ([240e2cc](https://github.com/botfront/botfront-api/commit/240e2cc))
+
 ### 0.15.1 (2019-07-08)
 
 
