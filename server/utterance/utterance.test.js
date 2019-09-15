@@ -35,10 +35,8 @@ describe('## Utterance API', () => {
             request(app)
                 .post('/log-utterance')
                 .send({
-                    text: 'blsbla',
-                    intent: 'test',
+                    parse_data: { intent: { name: 'test', confidence: 0.99 }, text: 'blsbla' },
                     modelId: 'rWM8MABzYM2QAsL6g',
-                    confidence: 0.99,
                 })
                 .expect(httpStatus.BAD_REQUEST)
                 .then(res => {
@@ -50,10 +48,8 @@ describe('## Utterance API', () => {
 
         it('should succeed adding new valid utterance', done => {
             const payload = {
-                text: 'blsbla',
-                intent: 'test',
+                parse_data: { intent: { name: 'test', confidence: 0.99 }, text: 'blsbla' },
                 modelId: '123',
-                confidence: 0.99,
             };
 
             request(app)
@@ -61,9 +57,8 @@ describe('## Utterance API', () => {
                 .send(payload)
                 .expect(httpStatus.OK)
                 .then(res => {
-                    expect(res.body.text).to.equal(payload.text);
-                    expect(res.body.modelId).to.equal(payload.modelId);
-                    expect(res.body.confidence).to.equal(payload.confidence);
+                    expect(res.body.text).to.equal(payload.parse_data.text);
+                    expect(res.body.confidence).to.equal(payload.parse_data.intent.confidence);
                     expect(res.body.entities).to.deep.equal([]);
                     expect(res.body.createdAt).to.exist;
                     expect(res.body.updatedAt).to.exist;
@@ -74,16 +69,17 @@ describe('## Utterance API', () => {
 
         it('should fail adding utterance with invalid entity', done => {
             const payload = {
-                text: 'sadfas',
-                intent: 'test',
-                entities: [
-                    {
-                        entity: 'test',
-                        value: 'value',
-                    },
-                ],
+                parse_data: {
+                    intent: { name: 'test', confidence: 0.99 },
+                    text: 'blsbla',
+                    entities: [
+                        {
+                            entity: 'test',
+                            value: 'value',
+                        },
+                    ],
+                },
                 modelId: '123',
-                confidence: 0.99,
             };
             request(app)
                 .post('/log-utterance')
@@ -95,26 +91,27 @@ describe('## Utterance API', () => {
 
         it('should filter duckling entities entity', done => {
             const payload = {
-                text: 'sadfsdfas',
-                intent: 'test',
-                entities: [
-                    {
-                        entity: 'test',
-                        value: 'value',
-                        start: 0,
-                        end: 1,
-                        extractor: 'ner_crf',
-                    },
-                    {
-                        entity: 'test',
-                        value: 'value',
-                        start: 0,
-                        end: 1,
-                        extractor: 'ner_duckling_http',
-                    },
-                ],
+                parse_data: {
+                    intent: { name: 'test', confidence: 0.99 },
+                    text: 'sadfsdfas',
+                    entities: [
+                        {
+                            entity: 'test',
+                            value: 'value',
+                            start: 0,
+                            end: 1,
+                            extractor: 'ner_crf',
+                        },
+                        {
+                            entity: 'test',
+                            value: 'value',
+                            start: 0,
+                            end: 1,
+                            extractor: 'ner_duckling_http',
+                        },
+                    ],
+                },
                 modelId: '123',
-                confidence: 0.99,
             };
             request(app)
                 .post('/log-utterance')
