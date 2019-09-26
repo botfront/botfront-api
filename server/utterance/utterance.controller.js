@@ -1,4 +1,4 @@
-const Model = require('../nlu_model/model');
+const Model = require('../models/model.model');
 const Utterance = require('./utterance.model');
 const Project = require('../project/project.model');
 
