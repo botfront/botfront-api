@@ -24,7 +24,11 @@ config().then(async config => {
     );
     for (let i = 1; i < Number.MAX_VALUE; ++i) {
         try {
-            await mongoose.connect(config.mongo.host, { keepAlive: true, useNewUrlParser: true });
+            await mongoose.connect(config.mongo.host, {
+                keepAlive: true,
+                useNewUrlParser: true,
+                useFindAndModify: false,
+            });
             break;
         } catch (error) {
             if (i === 1 || i % 1000 === 0)

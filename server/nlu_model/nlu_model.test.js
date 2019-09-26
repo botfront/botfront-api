@@ -5,7 +5,7 @@ const expect = chai.expect;
 const app = require('../../app');
 chai.config.includeStack = true;
 const Project = require('../project/project.model');
-const Model = require('./model.model');
+const NLUModel = require('./nlu_model.model');
 
 before(function(done) {
     const fs = require('fs');
@@ -14,7 +14,7 @@ before(function(done) {
     const projects = JSON.parse(fs.readFileSync(projectsFile, 'utf8'));
     const models = JSON.parse(fs.readFileSync(modelsFile, 'utf8'));
     Project.insertMany(projects)
-        .then(() => Model.insertMany(models))
+        .then(() => NLUModel.insertMany(models))
         .then(() => {
             done();
         });

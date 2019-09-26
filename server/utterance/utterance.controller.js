@@ -1,4 +1,4 @@
-const Model = require('../models/model.model');
+const NLUModel = require('../nlu_model/nlu_model.model');
 const Utterance = require('./utterance.model');
 const Project = require('../project/project.model');
 
@@ -31,7 +31,7 @@ async function logUtterance(modelId, parseData, callback) {
 
 async function create(req, res) {
     try {
-        const model = await Model.findOne({ _id: req.body.modelId }, { _id: 1 });
+        const model = await NLUModel.findOne({ _id: req.body.modelId }, { _id: 1 });
         if (!model) throw new Error('An existing modelId is required');
         const { modelId, parse_data } = req.body;
         logUtterance(modelId, parse_data, (utterance, error) => {
@@ -52,7 +52,7 @@ const logUtterancesFromTracker = async function(projectId, req) {
             // there should only be one event here, really
             const { language } = userUtterances[0].parse_data;
             const project = await Project.findOne({ _id: projectId }, { nlu_models: 1 }).lean();
-            const model = await Model.findOne(
+            const model = await NLUModel.findOne(
                 {
                     language,
                     _id: { $in: project.nlu_models },

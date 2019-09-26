@@ -1,5 +1,5 @@
 const { getVerifiedProject } = require('../utils');
-const Model = require('./model.model');
+const NLUModel = require('./nlu_model.model');
 const _ = require('lodash');
 
 exports.getPublishedModels = async function(req, res) {
@@ -10,7 +10,7 @@ exports.getPublishedModels = async function(req, res) {
             defaultLanguage: 1,
         });
         if (!project) throw { code: 401, error: 'unauthorized' };
-        const models = await Model.find({ _id: { $in: project.nlu_models }, published: true })
+        const models = await NLUModel.find({ _id: { $in: project.nlu_models }, published: true })
             .select({ language: 1 })
             .lean()
             .exec();

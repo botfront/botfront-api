@@ -15,7 +15,7 @@ const utteranceCtrl = require('../server/utterance/utterance.controller');
 const { getSenderEventCount, insertConversation, updateConversation } = require('./conversations');
 const { getProjectCredentials } = require('../server/credentials/credentials.controller');
 const { getProjectEndpoints } = require('../server/endpoints/endpoints.controller');
-const { getPublishedModels } = require('../server/models/model.controller');
+const { getPublishedModels } = require('../server/nlu_model/nlu_model.controller');
 
 let router = express.Router();
 

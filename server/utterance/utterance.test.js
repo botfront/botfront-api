@@ -4,13 +4,13 @@ const chai = require('chai');
 const expect = chai.expect;
 const app = require('../../app');
 chai.config.includeStack = true;
-const Model = require('../models/model.model');
+const NLUModel = require('../nlu_model/nlu_model.model');
 
 before(function(done) {
     const fs = require('fs');
-    const modelsFile = __dirname + '/../models/test_data/nlu_models.json';
+    const modelsFile = __dirname + '/../nlu_model/test_data/nlu_models.json';
     const models = JSON.parse(fs.readFileSync(modelsFile, 'utf8'));
-    Model.insertMany(models).then(function() {
+    NLUModel.insertMany(models).then(function() {
         done();
     });
 });
