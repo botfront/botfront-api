@@ -9,13 +9,13 @@ const {
     allResponsesValidator,
     nlg,
     nlgValidator,
-} = require('../server/bot_response/bot_response.controller');
+} = require('../server/templates/templates.controller');
 
-const utteranceCtrl = require('../server/utterance/utterance.controller');
+const utteranceCtrl = require('../server/activity/activity.controller');
 const { getSenderEventCount, insertConversation, updateConversation } = require('./conversations');
 const { getProjectCredentials } = require('../server/credentials/credentials.controller');
 const { getProjectEndpoints } = require('../server/endpoints/endpoints.controller');
-const { getPublishedModels } = require('../server/nlu_model/nlu_model.controller');
+const { getPublishedModels } = require('../server/nlu_models/nlu_models.controller');
 
 let router = express.Router();
 

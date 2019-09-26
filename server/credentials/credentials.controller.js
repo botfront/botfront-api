@@ -1,5 +1,5 @@
 const { getVerifiedProject } = require('../utils');
-const Credentials = require('./credentials.model');
+const { Credentials } = require('../../models/models');
 const yaml = require('js-yaml');
 
 exports.getProjectCredentials = async function(req, res) {

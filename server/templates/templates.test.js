@@ -4,13 +4,13 @@ const chai = require('chai');
 const expect = chai.expect;
 const app = require('../../app');
 chai.config.includeStack = true;
-const Project = require('../project/project.model');
+const { Projects } = require('../../models/models');
 
 before(function(done) {
     const fs = require('fs');
     const projectsFile = __dirname + '/test_data/projects.json';
     const projects = JSON.parse(fs.readFileSync(projectsFile, 'utf8'));
-    Project.insertMany(projects).then(function() {
+    Projects.insertMany(projects).then(function() {
         done();
     });
 });
@@ -25,7 +25,7 @@ describe('## NLG API', () => {
                 tracker: {},
             }
 
-            Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
+            Projects.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
                 .then(() => {
                     request(app)
                         .post('/project/5CmYdmu2Aanva3ZAy/nlg')
@@ -47,7 +47,7 @@ describe('## NLG API', () => {
                 tracker: {},
             }
 
-            Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
+            Projects.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
                 .then(() => {
                     request(app)
                         .post('/project/5CmYdmu2Aanva3ZAy/nlg')
@@ -65,7 +65,7 @@ describe('## NLG API', () => {
                 tracker: {},
             }
 
-            Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
+            Projects.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
                 .then(() => {
                     request(app)
                         .post('/project/5CmYdmu2Aanva3ZAy/nlg')
@@ -84,7 +84,7 @@ describe('## NLG API', () => {
                 tracker: {},
             }
 
-            Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
+            Projects.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
                 .then(() => {
                     request(app)
                         .post('/project/5CmYdmu2Aanva3ZAy/nlg')
@@ -340,7 +340,7 @@ describe('## Bot responses API', () => {
     describe('# GET /project/{projectId}/responses/', function() {
 
         it('should get all responses', function (done) {
-            Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
+            Projects.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
                 .then(project => {
                     request(app)
                         .get('/project/5CmYdmu2Aanva3ZAy/responses')

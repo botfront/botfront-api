@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const shortid = require('shortid');
 const Schema = mongoose.Schema;
+const shortid = require('shortid');
 
 const entity = new Schema(
     {
@@ -15,7 +15,13 @@ const entity = new Schema(
     { _id: false },
 );
 
-const utterance = new Schema({
+const projects = new Schema({ _id: String }, { strict: false });
+const credentials = new Schema({ _id: String }, { strict: false });
+const endpoints = new Schema({ _id: String }, { strict: false });
+const nlu_models = new Schema({ _id: String }, { strict: false });
+
+
+const activity = new Schema({
     _id: { type: String, default: shortid.generate },
     modelId: { type: String, required: true },
     text: { type: String, required: true },
@@ -28,4 +34,8 @@ const utterance = new Schema({
     updatedAt: { type: Date, required: true, default: Date.now },
 });
 
-module.exports = mongoose.model('Utterance', utterance, 'activity');
+exports.Activity = mongoose.model('Activity', activity, 'activity');
+exports.NLUModels = mongoose.model('NLUModels', nlu_models, 'nlu_models');
+exports.Endpoints = mongoose.model('Endpoints', endpoints, 'endpoints');
+exports.Credentials = mongoose.model('Credentials', credentials, 'credentials');
+exports.Projects = mongoose.model('Projects', projects, 'projects');

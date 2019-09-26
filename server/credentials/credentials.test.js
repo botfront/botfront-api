@@ -4,8 +4,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const app = require('../../app');
 chai.config.includeStack = true;
-const Project = require('../project/project.model');
-const Credentials = require('./credentials.model');
+const { Projects, Credentials } = require('../../models/models');
 
 before(function(done) {
     const fs = require('fs');
@@ -13,7 +12,7 @@ before(function(done) {
     const credentialsFile = __dirname + '/test_data/credentials.json';
     const projects = JSON.parse(fs.readFileSync(projectsFile, 'utf8'));
     const credentials = JSON.parse(fs.readFileSync(credentialsFile, 'utf8'));
-    Project.insertMany(projects)
+    Projects.insertMany(projects)
         .then(() => Credentials.insertMany(credentials))
         .then(() => {
             done();

@@ -1,6 +1,6 @@
 const { checkApiKeyAgainstProject } = require('../server/utils');
 const db = require('monk')(process.env.MONGO_URL);
-const { logUtterancesFromTracker } = require('../server/utterance/utterance.controller');
+const { logUtterancesFromTracker } = require('../server/activity/activity.controller');
 
 exports.getSenderEventCount = function(req, res) {
     const dialogues = db.get('conversations', { castIds: false });

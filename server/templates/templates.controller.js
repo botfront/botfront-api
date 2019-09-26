@@ -1,7 +1,7 @@
 const yaml = require('js-yaml');
 const { body, validationResult, query } = require('express-validator/check');
 const { addKeyToQuery } = require('../utils');
-const Project = require('../project/project.model');
+const { Projects } = require('../../models/models');
 
 function subText(text, slots) {
     const slotSubs = Object.entries(slots).map(s => [`{${s[0]}}`, s[1] || '']);
@@ -57,7 +57,7 @@ exports.nlg = async function(req, res) {
     } = req.body;
 
     try {
-        const project = await Project.findOne(addKeyToQuery({ _id: projectId }, req))
+        const project = await Projects.findOne(addKeyToQuery({ _id: projectId }, req))
             .select({ templates: { $elemMatch: { key: template } } })
             .lean()
             .exec();
@@ -87,7 +87,7 @@ exports.getResponseByName = async function(req, res) {
     const { project_id: projectId, name: templateKey, lang } = req.params;
     const { metadata } = req.query;
     try {
-        const project = await Project.findOne(addKeyToQuery({ _id: projectId }, req))
+        const project = await Projects.findOne(addKeyToQuery({ _id: projectId }, req))
             .select({ templates: { $elemMatch: { key: templateKey } } })
             .lean()
             .exec();
@@ -210,7 +210,7 @@ exports.getResponseFromCriteria = async function(req, res) {
     // const v =  JSON.stringify({ templates: { $elemMatch: prepareTemplateQuery(nlu) } }, null,2)
     // console.log(v)
     try {
-        const projects = await Project.aggregate(prepareResponseAggregation(projectId, nlu));
+        const projects = await Projects.aggregate(prepareResponseAggregation(projectId, nlu));
         if (!projects.length || !projects[0].templates || !!projects[0].templates.length) {
             throw { code: 404, error: 'not_found' };
         }
@@ -252,7 +252,7 @@ exports.getAllResponses = async function(req, res) {
     const { project_id: projectId } = req.params;
     const { timestamp, metadata } = req.query;
     try {
-        const project = await Project.findOne(addKeyToQuery({ _id: projectId }, req))
+        const project = await Projects.findOne(addKeyToQuery({ _id: projectId }, req))
             .select({ templates: 1, responsesUpdatedAt: 1 })
             .lean()
             .exec();

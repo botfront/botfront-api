@@ -1,5 +1,5 @@
 const { getVerifiedProject } = require('../utils');
-const Endpoints = require('./endpoints.model');
+const { Endpoints } = require('../../models/models');
 const yaml = require('js-yaml');
 
 exports.getProjectEndpoints = async function(req, res) {

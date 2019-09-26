@@ -1,16 +1,14 @@
-const NLUModel = require('../nlu_model/nlu_model.model');
-const Utterance = require('./utterance.model');
-const Project = require('../project/project.model');
+const { Projects, NLUModels, Activity } = require('../../models/models');
 
 async function logUtterance(modelId, parseData, callback) {
     const { text } = parseData;
-    const existingExample = await Utterance.findOne({ modelId, text }, { _id: 1 });
+    const existingExample = await Activity.findOne({ modelId, text }, { _id: 1 });
     const newData = {
         ...parseData,
         intent: parseData.intent.name,
         confidence: parseData.intent.confidence,
     };
-    let utterance = { ...new Utterance(newData) }._doc;
+    let utterance = { ...new Activity(newData) }._doc;
     if (!parseData.intent) utterance.intent = null;
 
     if (existingExample) delete utterance._id;
@@ -18,7 +16,7 @@ async function logUtterance(modelId, parseData, callback) {
         utterance.entities = utterance.entities.filter(e => e.extractor !== 'ner_duckling_http');
     }
 
-    Utterance.findOneAndUpdate(
+    Activity.findOneAndUpdate(
         { modelId, text },
         utterance,
         {
@@ -31,7 +29,7 @@ async function logUtterance(modelId, parseData, callback) {
 
 async function create(req, res) {
     try {
-        const model = await NLUModel.findOne({ _id: req.body.modelId }, { _id: 1 });
+        const model = await NLUModels.findOne({ _id: req.body.modelId }, { _id: 1 });
         if (!model) throw new Error('An existing modelId is required');
         const { modelId, parse_data } = req.body;
         logUtterance(modelId, parse_data, (utterance, error) => {
@@ -51,8 +49,8 @@ const logUtterancesFromTracker = async function(projectId, req) {
         if (userUtterances.length) {
             // there should only be one event here, really
             const { language } = userUtterances[0].parse_data;
-            const project = await Project.findOne({ _id: projectId }, { nlu_models: 1 }).lean();
-            const model = await NLUModel.findOne(
+            const project = await Projects.findOne({ _id: projectId }, { nlu_models: 1 }).lean();
+            const model = await NLUModels.findOne(
                 {
                     language,
                     _id: { $in: project.nlu_models },

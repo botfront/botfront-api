@@ -1,5 +1,5 @@
 const db = require('monk')(process.env.MONGO_URL);
-const Project = require('./project/project.model');
+const { Projects } = require('../models/models');
 
 const isRequestTrusted = req => {
     // This indicates the request comes from within the cluster so we trust it and no auth is needed
@@ -22,7 +22,7 @@ exports.addKeyToQuery = addKeyToQuery;
  * (if request is not coming from a trusted place)
  */
 exports.getVerifiedProject = function(projectId, req, projection = {}) {
-    return Project.findOne(addKeyToQuery({ _id: projectId }, req))
+    return Projects.findOne(addKeyToQuery({ _id: projectId }, req))
         .select({ _id: 1, ...projection })
         .lean()
         .exec();

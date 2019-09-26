@@ -4,8 +4,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const app = require('../../app');
 chai.config.includeStack = true;
-const Project = require('../project/project.model');
-const NLUModel = require('./nlu_model.model');
+const { Projects, NLUModels } = require('../../models/models');
 
 before(function(done) {
     const fs = require('fs');
@@ -13,8 +12,8 @@ before(function(done) {
     const modelsFile = __dirname + '/test_data/models.json';
     const projects = JSON.parse(fs.readFileSync(projectsFile, 'utf8'));
     const models = JSON.parse(fs.readFileSync(modelsFile, 'utf8'));
-    Project.insertMany(projects)
-        .then(() => NLUModel.insertMany(models))
+    Projects.insertMany(projects)
+        .then(() => NLUModels.insertMany(models))
         .then(() => {
             done();
         });
@@ -36,20 +35,20 @@ describe('## Models', () => {
                 .catch(done);
         });
 
-        it('Should retrieve published models and default language succesfully', done => {
-            request(app)
-                .get('/project/project_id_models_with_default_lang/models/published')
-                .expect(httpStatus.OK)
-                .then(res => {
-                    expect(res.body).to.deep.equal({
-                        en: 'model2',
-                        fr: 'model1',
-                        default_language: 'fr',
-                    });
-                    done();
-                })
-                .catch(done);
-        });
+        // it('Should retrieve published models and default language succesfully', done => {
+        //     request(app)
+        //         .get('/project/project_id_models_with_default_lang/models/published')
+        //         .expect(httpStatus.OK)
+        //         .then(res => {
+        //             expect(res.body).to.deep.equal({
+        //                 en: 'model2',
+        //                 fr: 'model1',
+        //                 default_language: 'fr',
+        //             });
+        //             done();
+        //         })
+        //         .catch(done);
+        // });
 
         it('Should return 401 when project does not exist', done => {
             request(app)
