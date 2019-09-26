@@ -180,62 +180,6 @@ function prepareResponseAggregation(projectId, nlu) {
     return pipeline;
 }
 
-exports.responseFromCriteriaValidator = [
-    body('nlu', 'must be a JSON object').exists(),
-    body('nlu.intent', 'An intent is required').isString(),
-    body('nlu.entities', 'An intent is required')
-        .optional()
-        .isArray(),
-    body('nlu.entities.*.entity').isString(),
-    body('nlu.entities.*.value', 'must be a string').isString(),
-    body('language', 'must be a language code (e.g. "fr" or "en")')
-        .optional()
-        .isString()
-        .isLength({ min: 2, max: 2 }),
-    body('compact', 'must be true/false or 1/0 if set')
-        .optional()
-        .isBoolean(),
-    query('metadata', 'must be 1 or 0 if set')
-        .optional()
-        .isBoolean(),
-];
-
-exports.getResponseFromCriteria = async function(req, res) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
-
-    const { project_id: projectId } = req.params;
-    const { metadata } = req.query;
-    const nlu = req.body.nlu;
-    // const v =  JSON.stringify({ templates: { $elemMatch: prepareTemplateQuery(nlu) } }, null,2)
-    // console.log(v)
-    try {
-        const projects = await Projects.aggregate(prepareResponseAggregation(projectId, nlu));
-        if (!projects.length || !projects[0].templates || !!projects[0].templates.length) {
-            throw { code: 404, error: 'not_found' };
-        }
-
-        const response = {
-            key: projects[0].templates.key,
-            follow_up: projects[0].templates.followUp || {},
-        };
-
-        if (req.body.language) {
-            const value = projects[0].templates.values.find(v => v.lang === req.body.language);
-            if (!value || !value.sequence.length)
-                throw {
-                    code: 404,
-                    error: 'not_found',
-                };
-            response.sequence = value.sequence.map(t => formatSequence(t, response.key, metadata));
-        }
-
-        return res.status(200).json(req.body.compact ? response.sequence : response);
-    } catch (err) {
-        return res.status(err.code || 500).json(err);
-    }
-};
-
 exports.allResponsesValidator = [
     query('metadata', 'must be 1 or 0 if set')
         .optional()
