@@ -35,21 +35,6 @@ describe('## Models', () => {
                 .catch(done);
         });
 
-        // it('Should retrieve published models and default language succesfully', done => {
-        //     request(app)
-        //         .get('/project/project_id_models_with_default_lang/models/published')
-        //         .expect(httpStatus.OK)
-        //         .then(res => {
-        //             expect(res.body).to.deep.equal({
-        //                 en: 'model2',
-        //                 fr: 'model1',
-        //                 default_language: 'fr',
-        //             });
-        //             done();
-        //         })
-        //         .catch(done);
-        // });
-
         it('Should return 401 when project does not exist', done => {
             request(app)
                 .get('/project/kkk/models/published')
