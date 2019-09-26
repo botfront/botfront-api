@@ -192,30 +192,6 @@ describe('## Bot responses API', () => {
                 })
                 .catch(done);
         });
-
-        it('should not return metadata when no metadata in query', done => {
-            request(app)
-                .get('/project/5CmYdmu2Aanva3ZAy/response/name/utter_intent4_GKt4zV0Ezs/lang/en')
-                .expect(httpStatus.OK)
-                .then(res => {
-                    expect(res.body[0].text).to.equal('simple text message');
-                    expect(res.body[0].metadata).to.not.exist;
-                    done();
-                })
-                .catch(done);
-        });
-
-        it('should return metadata when metadata in query', done => {
-            request(app)
-                .get('/project/5CmYdmu2Aanva3ZAy/response/name/utter_intent4_GKt4zV0Ezs/lang/en?metadata=1')
-                .expect(httpStatus.OK)
-                .then(res => {
-                    expect(res.body[0].text).to.equal('simple text message');
-                    expect(res.body[0].metadata).to.deep.equal({ test: 'ok' });
-                    done();
-                })
-                .catch(done);
-        });
     });
 
     describe('# GET /project/{projectId}/responses/', function() {

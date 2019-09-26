@@ -1,7 +1,18 @@
 const yaml = require('js-yaml');
 const { body, validationResult, query } = require('express-validator/check');
-const { addKeyToQuery } = require('../utils');
-const { Projects } = require('../../models/models');
+const { getVerifiedProject } = require('../utils');
+
+const formatTemplates = templates => yaml.safeDump({
+    templates: templates.reduce((ks, k) => ({
+        ...ks,
+        [k.key]: k.values.reduce((vs, v) => ({
+            ...vs,
+            [v.lang]: v.sequence.map(seq => yaml.safeLoad(seq.content)),
+        }), {}),
+    }), {}),
+});
+
+exports.formatTemplates = formatTemplates;
 
 function subText(text, slots) {
     const slotSubs = Object.entries(slots).map(s => [`{${s[0]}}`, s[1] || '']);
@@ -10,10 +21,9 @@ function subText(text, slots) {
     return subbedText;
 }
 
-function formatSequence(t, templateKey, metadata = 0, slots = {}) {
+function formatSequence(t, templateKey, slots = {}) {
     const doc = yaml.safeLoad(t.content);
     //TODO validate against schema https://github.com/nodeca/js-yaml/
-    if (parseInt(metadata) !== 1) delete doc.metadata;
     if (typeof doc === 'object') return { ...doc, text: subText(doc.text, slots) };
     else if (typeof doc === 'string') return { text: subText(doc, slots) };
     else
@@ -23,14 +33,6 @@ function formatSequence(t, templateKey, metadata = 0, slots = {}) {
         };
 }
 
-exports.responseByNameValidator = [
-    // check('lang', 'must be a language code (e.g. "fr" or "en")')
-    //     .isString().isLength({min: 2, max: 2}),
-    // check('name', 'must start with \'utter_\'').matches(/^utter_/),
-    query('metadata', 'must be 1 or 0 if set')
-        .optional()
-        .isBoolean(),
-];
 exports.nlgValidator = [
     // check('lang', 'must be a language code (e.g. "fr" or "en")')
     //     .isString().isLength({min: 2, max: 2}),
@@ -57,10 +59,7 @@ exports.nlg = async function(req, res) {
     } = req.body;
 
     try {
-        const project = await Projects.findOne(addKeyToQuery({ _id: projectId }, req))
-            .select({ templates: { $elemMatch: { key: template } } })
-            .lean()
-            .exec();
+        const project = await getVerifiedProject(projectId, req, { templates: { $elemMatch: { key: template } } });
 
         const responses = project.templates || [];
         if (!responses.length) throw { code: 404, error: 'not_found' };
@@ -72,9 +71,7 @@ exports.nlg = async function(req, res) {
             };
 
         return res.status(200).json(
-            localizedValue.sequence.map(t => {
-                return formatSequence(t, template, 0, slots);
-            }),
+            localizedValue.sequence.map(t => formatSequence(t, template, slots)),
         );
     } catch (err) {
         return res.status(err.code || 500).json(err);
@@ -84,13 +81,9 @@ exports.getResponseByName = async function(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
 
-    const { project_id: projectId, name: templateKey, lang } = req.params;
-    const { metadata } = req.query;
+    const { project_id: projectId, name: template, lang } = req.params;
     try {
-        const project = await Projects.findOne(addKeyToQuery({ _id: projectId }, req))
-            .select({ templates: { $elemMatch: { key: templateKey } } })
-            .lean()
-            .exec();
+        const project = await getVerifiedProject(projectId, req, { templates: { $elemMatch: { key: template } } });
 
         const responses = project.templates || [];
         if (!responses.length) throw { code: 404, error: 'not_found' };
@@ -103,7 +96,7 @@ exports.getResponseByName = async function(req, res) {
 
         return res.status(200).json(
             localizedValue.sequence.map(t => {
-                return formatSequence(t, templateKey, metadata);
+                return formatSequence(t, template);
             }),
         );
     } catch (err) {
@@ -111,82 +104,13 @@ exports.getResponseByName = async function(req, res) {
     }
 };
 
-function prepareResponseAggregation(projectId, nlu) {
-    const pipeline = [
-        { $match: { _id: projectId } },
-        { $unwind: '$templates' },
-        { $unwind: '$templates.match.nlu' },
-    ];
-
-    // Select all responses with the following settings for the entity requested
-    // - entity has value x
-    // - entity is detetected
-    const matchNLUStage = { 'templates.match.nlu.intent': nlu.intent };
-    if (nlu.entities && nlu.entities.length > 0) {
-        matchNLUStage.$and = [];
-        nlu.entities.forEach(e => {
-            const or = {
-                $or: [
-                    {
-                        'templates.match.nlu.entities.entity': e.entity,
-                        'templates.match.nlu.entities.value': { $exists: false },
-                    },
-                ],
-            };
-            if (e.value)
-                or.$or.push({
-                    'templates.match.nlu.entities.entity': e.entity,
-                    'templates.match.nlu.entities.value': e.value,
-                });
-            matchNLUStage.$and.push(or);
-        });
-    }
-
-    const entityLimiter = {};
-    const entitiesLimit = nlu.entities && nlu.entities.length ? nlu.entities.length : 0;
-    entityLimiter[`templates.match.nlu.entities.${entitiesLimit}`] = { $exists: false };
-    pipeline.push({
-        $match: {
-            $and: [matchNLUStage, entityLimiter],
-        },
-    });
-
-    // Add a field 'values' containing the count of entity values in that response
-    pipeline.push({
-        $project: {
-            templates: 1,
-            values: {
-                $reduce: {
-                    input: '$templates.match.nlu.entities',
-                    initialValue: [],
-                    in: {
-                        $size: {
-                            $concatArrays: ['$$value', '$templates.match.nlu.entities.value'],
-                        },
-                    },
-                },
-            },
-        },
-    });
-
-    // Then sort and select the response with the highest value
-    pipeline.push({ $sort: { values: -1 } });
-    pipeline.push({
-        $group: {
-            _id: '$_id',
-            templates: { $first: '$templates' },
-        },
-    });
-    return pipeline;
-}
-
 exports.allResponsesValidator = [
-    query('metadata', 'must be 1 or 0 if set')
-        .optional()
-        .isBoolean(),
     query('timestamp', 'must be in milliseconds if set')
         .optional()
         .isInt(),
+    query('ouput', 'json/(Rasa-compatible) yaml')
+        .optional()
+        .isIn(['json', 'yaml']),
 ];
 
 exports.getAllResponses = async function(req, res) {
@@ -194,28 +118,16 @@ exports.getAllResponses = async function(req, res) {
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
 
     const { project_id: projectId } = req.params;
-    const { timestamp, metadata } = req.query;
+    const { timestamp, output } = req.query;
     try {
-        const project = await Projects.findOne(addKeyToQuery({ _id: projectId }, req))
-            .select({ templates: 1, responsesUpdatedAt: 1 })
-            .lean()
-            .exec();
+        const project = await getVerifiedProject(projectId, req, { templates: 1, responsesUpdatedAt: 1 });
         if (project.responsesUpdatedAt === parseInt(timestamp)) {
             return res.status(304).json();
         }
-        project.templates = project.templates.map(template => {
-            return {
-                ...template,
-                values: template.values.map(value => {
-                    return {
-                        ...value,
-                        sequence: value.sequence.map(t =>
-                            formatSequence(t, template.key, metadata),
-                        ),
-                    };
-                }),
-            };
-        });
+        if (output == 'yaml') {
+            return res.status(200).send(formatTemplates(project.templates))
+        }
+
         return res.status(200).json({
             responses: project.templates,
             timestamp: project.responsesUpdatedAt,
