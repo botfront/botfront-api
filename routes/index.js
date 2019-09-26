@@ -9,9 +9,9 @@ const {
     allResponsesValidator,
     nlg,
     nlgValidator,
-} = require('../server/bot_response/bot_response.controller')
+} = require('../server/bot_response/bot_response.controller');
 
-const utteranceCtrl = require('../server/utterance/utterance.controller')
+const utteranceCtrl = require('../server/utterance/utterance.controller');
 const { getSenderEventCount, insertConversation, updateConversation } = require('./conversations');
 const { getProjectCredentials } = require('../server/credentials/credentials.controller');
 const { getProjectEndpoints } = require('../server/endpoints/endpoints.controller');
@@ -19,20 +19,27 @@ const { getPublishedModels } = require('../server/models/model.controller');
 
 let router = express.Router();
 
-router.get('/project/:project_id/template/key/:name/lang/:lang',
-    responseByNameValidator, getResponseByName);
+router.get(
+    '/project/:project_id/template/key/:name/lang/:lang',
+    responseByNameValidator,
+    getResponseByName,
+);
 
-router.get('/project/:project_id/response/name/:name/lang/:lang',
-    responseByNameValidator, getResponseByName);
+router.get(
+    '/project/:project_id/response/name/:name/lang/:lang',
+    responseByNameValidator,
+    getResponseByName,
+);
 
-router.post('/project/:project_id/nlg',
-    nlgValidator, nlg);
+router.post('/project/:project_id/nlg', nlgValidator, nlg);
 
-router.post('/project/:project_id/response',
-    responseFromCriteriaValidator, getResponseFromCriteria);
+router.post(
+    '/project/:project_id/response',
+    responseFromCriteriaValidator,
+    getResponseFromCriteria,
+);
 
-router.get('/project/:project_id/responses',
-    allResponsesValidator, getAllResponses);
+router.get('/project/:project_id/responses', allResponsesValidator, getAllResponses);
 
 router.get('/project/:project_id/conversations/:sender_id/:event_count', getSenderEventCount);
 router.post('/project/:project_id/conversations/:sender_id/insert', insertConversation);

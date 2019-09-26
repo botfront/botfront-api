@@ -15,19 +15,17 @@ const entity = new Schema(
     { _id: false },
 );
 
-const utterance = new Schema(
-    {
-        _id: { type: String, default: shortid.generate },
-        modelId: { type: String, required: true },
-        text: { type: String, required: true },
-        intent: { type: String, required: false },
-        entities: { type: [entity], required: false },
-        confidence: { type: Number, required: true },
-        validated: { type: Boolean, required: false },
-        ooS: { type: Boolean, required: false },
-        createdAt: { type: Date, required: true, default: Date.now },
-        updatedAt: { type: Date, required: true, default: Date.now },
-    },
-)
+const utterance = new Schema({
+    _id: { type: String, default: shortid.generate },
+    modelId: { type: String, required: true },
+    text: { type: String, required: true },
+    intent: { type: String, required: false },
+    entities: { type: [entity], required: false },
+    confidence: { type: Number, required: true },
+    validated: { type: Boolean, required: false },
+    ooS: { type: Boolean, required: false },
+    createdAt: { type: Date, required: true, default: Date.now },
+    updatedAt: { type: Date, required: true, default: Date.now },
+});
 
 module.exports = mongoose.model('Utterance', utterance, 'activity');

@@ -45,7 +45,6 @@ exports.checkApiKeyAgainstProject = (projectId, req) => {
             })
             .catch(reject);
     });
-}
-
+};
 
 exports.isRequestTrusted = isRequestTrusted;

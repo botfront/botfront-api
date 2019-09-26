@@ -10,8 +10,7 @@ exports.getPublishedModels = async function(req, res) {
             defaultLanguage: 1,
         });
         if (!project) throw { code: 401, error: 'unauthorized' };
-        const models = await Model
-            .find({ _id: { $in: project.nlu_models }, published: true })
+        const models = await Model.find({ _id: { $in: project.nlu_models }, published: true })
             .select({ language: 1 })
             .lean()
             .exec();

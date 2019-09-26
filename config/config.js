@@ -28,12 +28,12 @@ module.exports = async function() {
         throw new Error(`Config validation error: ${error.message}`);
     }
 
-    if (envVars.NODE_ENV === 'test'){
+    if (envVars.NODE_ENV === 'test') {
         const { MongoMemoryServer } = require('mongodb-memory-server');
         const mongod = new MongoMemoryServer();
         envVars.MONGO_URL = await mongod.getConnectionString();
         envVars.MONGO_URL = await mongod.getConnectionString();
-        envVars.MONGO_PORT = await mongod.getPort()
+        envVars.MONGO_PORT = await mongod.getPort();
     }
 
     return {

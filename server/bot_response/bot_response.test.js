@@ -1,8 +1,6 @@
-/* eslint-disable no-undef */
-/* eslint-disable max-len */
 const request = require('supertest-as-promised');
 const httpStatus = require('http-status');
-const chai = require('chai'); // eslint-disable-line import/newline-after-import
+const chai = require('chai');
 const expect = chai.expect;
 const app = require('../../app');
 chai.config.includeStack = true;
@@ -28,7 +26,7 @@ describe('## NLG API', () => {
             }
 
             Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
-                .then(project => {
+                .then(() => {
                     request(app)
                         .post('/project/5CmYdmu2Aanva3ZAy/nlg')
                         .send(body)
@@ -50,14 +48,12 @@ describe('## NLG API', () => {
             }
 
             Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
-                .then(project => {
+                .then(() => {
                     request(app)
                         .post('/project/5CmYdmu2Aanva3ZAy/nlg')
                         .send(body)
                         .expect(httpStatus.UNPROCESSABLE_ENTITY)
-                        .then((res) => {
-                            done()
-                        })
+                        .then(() => done())
                         .catch(done);
                 })
         });
@@ -70,14 +66,12 @@ describe('## NLG API', () => {
             }
 
             Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
-                .then(project => {
+                .then(() => {
                     request(app)
                         .post('/project/5CmYdmu2Aanva3ZAy/nlg')
                         .send(body)
                         .expect(httpStatus.UNPROCESSABLE_ENTITY)
-                        .then((res) => {
-                            done()
-                        })
+                        .then(() => done())
                         .catch(done);
                 })
         });
@@ -91,14 +85,12 @@ describe('## NLG API', () => {
             }
 
             Project.findOne({ _id: '5CmYdmu2Aanva3ZAy'})
-                .then(project => {
+                .then(() => {
                     request(app)
                         .post('/project/5CmYdmu2Aanva3ZAy/nlg')
                         .send(body)
                         .expect(httpStatus.UNPROCESSABLE_ENTITY)
-                        .then((res) => {
-                            done()
-                        })
+                        .then(() => done())
                         .catch(done);
                 })
         });
@@ -224,28 +216,6 @@ describe('## Bot responses API', () => {
                 })
                 .catch(done);
         });
-
-        // it('should return 422 when invalid response name', done => {
-        //     request(app)
-        //         .get('/project/empty_sequence/response/name/empty_sequence/lang/fr')
-        //         .expect(httpStatus.UNPROCESSABLE_ENTITY)
-        //         .then(res => {
-        //             expect(res.body.error).to.equal('not_found');
-        //             done();
-        //         })
-        //         .catch(done);
-        // });
-
-        // it('should return 422 when invalid language', done => {
-        //     request(app)
-        //         .get('/project/empty_sequence/response/name/utter_empty_sequence/lang/french')
-        //         .expect(httpStatus.UNPROCESSABLE_ENTITY)
-        //         .then(res => {
-        //             expect(res.body.error).to.equal('not_found');
-        //             done();
-        //         })
-        //         .catch(done);
-        // });
     });
 
     describe('# POST /project/{projectId}/response/}', () => {
@@ -367,7 +337,6 @@ describe('## Bot responses API', () => {
         });
     });
 
-  
     describe('# GET /project/{projectId}/responses/', function() {
 
         it('should get all responses', function (done) {

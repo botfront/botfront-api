@@ -32,7 +32,7 @@ module.exports = {
             },
         ],
         indent: ['error', 4],
-        'max-len': ['error', 100],
+        'max-len': ['error', 200],
         'no-trailing-spaces': ['error', { skipBlankLines: true }],
         'no-extra-boolean-cast': 'off',
         'no-nested-ternary': 'off',
