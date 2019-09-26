@@ -1,5 +1,0 @@
-[{
-    "projectId": "project_id_rules",
-    "_id": "rules_id",
-    "rules": "intent_substitutions:\n  - intent: chitchat\n    with: faq\n"
-}]
