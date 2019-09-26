@@ -26,7 +26,6 @@ const slots = new Schema({ _id: String }, { strict: false });
 const instances = new Schema({ _id: String }, { strict: false });
 const core_policies = new Schema({ _id: String }, { strict: false });
 const conversations = new Schema({ _id: String }, { strict: false });
-
 const activity = new Schema({
     _id: { type: String, default: shortid.generate },
     modelId: { type: String, required: true },
@@ -43,11 +42,11 @@ const activity = new Schema({
 exports.Activity = mongoose.model('Activity', activity, 'activity');
 exports.Conversations = mongoose.model('Conversations', conversations, 'conversations');
 exports.CorePolicies = mongoose.model('CorePolicies', core_policies, 'core_policies');
-exports.Instances = mongoose.model('Instances', instances, 'instances');
+exports.Instances = mongoose.model('Instances', instances, 'nlu_instances');
 exports.Slots = mongoose.model('Slots', slots, 'slots');
 exports.Stories = mongoose.model('Stories', stories, 'stories');
-exports.StoryGroups = mongoose.model('StoryGroups', story_groups, 'story_groups');
-exports.Evaluations = mongoose.model('Evaluations', evaluations, 'evaluations');
+exports.StoryGroups = mongoose.model('StoryGroups', story_groups, 'storyGroups');
+exports.Evaluations = mongoose.model('Evaluations', evaluations, 'nlu_evaluations');
 exports.NLUModels = mongoose.model('NLUModels', nlu_models, 'nlu_models');
 exports.Endpoints = mongoose.model('Endpoints', endpoints, 'endpoints');
 exports.Credentials = mongoose.model('Credentials', credentials, 'credentials');
