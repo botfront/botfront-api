@@ -32,11 +32,11 @@ const activity = new Schema({
     text: { type: String, required: true },
     intent: { type: String, required: false },
     entities: { type: [entity], required: false },
-    confidence: { type: Number, required: true },
+    confidence: { type: Number, required: false },
     validated: { type: Boolean, required: false },
     ooS: { type: Boolean, required: false },
-    createdAt: { type: Date, required: true, default: Date.now },
-    updatedAt: { type: Date, required: true, default: Date.now },
+    createdAt: { type: Date, required: false, default: Date.now },
+    updatedAt: { type: Date, required: false, default: Date.now },
 });
 
 exports.Activity = mongoose.model('Activity', activity, 'activity');

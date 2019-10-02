@@ -39,8 +39,8 @@ router.post('/project/:project_id/conversations/:sender_id/update', updateConver
 router.get('/project/:project_id/credentials/:environment?/', getProjectCredentials);
 router.get('/project/:project_id/endpoints/:environment?/', getProjectEndpoints);
 
-router.get('/project/:project_id/export', exportProjectValidator, exportProject)
-router.put('/project/:project_id/import', importProjectValidator, importProject)
+router.get('/project/:project_id/export', exportProjectValidator, exportProject);
+router.put('/project/:project_id/import', importProjectValidator, importProject);
 
 router.get('/project/:project_id/models/published', getPublishedModels);
 router.get('/health-check', (req, res) => res.status(200).json());

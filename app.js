@@ -9,7 +9,7 @@ const bodyParser = require('body-parser');
 const port = process.env.PORT || 8080;
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '30mb' }));
 
 config().then(async config => {
     const routes = require('./routes/index.js');

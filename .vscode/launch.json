@@ -44,7 +44,7 @@
             "console": "integratedTerminal",
             "env": {
                 "MONGO_URL": "mongodb://localhost:3001/meteor",
-                "PORT": "8081"
+                "PORT": "8080"
             }
         }
     ]
