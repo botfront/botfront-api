@@ -137,7 +137,9 @@ exports.exportProject = async function(req, res) {
             response[col] = await collectionsWithProjectId[col].find({ projectId }).lean();
         }
         response.timestamp = new Date().getTime();
-        return res.status(200).json(response);
+        return res.status(200)
+            .attachment(`${project.name}-${response.timestamp}.json`)
+            .json(response);
     } catch (err) {
         return res.status(500).json(err);
     }
