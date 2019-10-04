@@ -32,7 +32,8 @@ const colsWithPID = {
 };
 
 const collections = { ...colsWithMID, ...colsWithPID };
-const allCollections = { ...collections, models: NLUModels }
+const allCollections = { ...collections, models: NLUModels };
+exports.allCollections = allCollections;
 
 const nativizeProject = function(projectId, projectName, backup) {
     /*
@@ -123,11 +124,11 @@ exports.exportProject = async function(req, res) {
 
 exports.importProjectValidator = [
     body('project', 'is required')
-        .custom(project => [
+        .custom(project => project && [
             '_id', 'name', 'defaultLanguage', 'nlu_models', 'templates', 'instance',
         ].every(prop => Object.keys(project).includes(prop))),
-    body() // for now, require every collection to be found in backup
-        .custom(body => Object.keys(allCollections).every(col => Object.keys(body).includes(col))),
+    body('', `is required to include ${Object.keys(allCollections).join(', ')}`) // for now, require every collection to be found in backup
+        .custom(body => body && Object.keys(allCollections).every(col => Object.keys(body).includes(col))),
 ];
 
 exports.importProject = async function(req, res) {
@@ -143,12 +144,8 @@ exports.importProject = async function(req, res) {
         }
         await NLUModels.deleteMany({ _id: { $in: project.nlu_models } }).exec();
         await Projects.deleteMany({ _id: projectId }).exec();
-        await NLUModels.insertMany(backup.models);/*.then(()=>{}, (e) => {
-            console.log(e)
-        });*/
-        await Projects.insertMany([backup.project]);/*.then(()=>{}, (e) => {
-            console.log(e)
-        });*/
+        await NLUModels.insertMany(backup.models);
+        await Projects.insertMany([backup.project]);
         return res.status(200).send('Success');
     } catch (e) {
         console.log(e)

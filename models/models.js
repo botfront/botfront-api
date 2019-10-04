@@ -12,20 +12,20 @@ const entity = new Schema(
         extractor: { type: String, required: false },
         processors: [{ type: String, required: false }],
     },
-    { _id: false },
+    { _id: false, versionKey: false },
 );
 
-const projects = new Schema({ _id: String }, { strict: false });
-const credentials = new Schema({ _id: String }, { strict: false });
-const endpoints = new Schema({ _id: String }, { strict: false });
-const nlu_models = new Schema({ _id: String }, { strict: false });
-const evaluations = new Schema({ _id: String }, { strict: false });
-const story_groups = new Schema({ _id: String }, { strict: false });
-const stories = new Schema({ _id: String }, { strict: false });
-const slots = new Schema({ _id: String }, { strict: false });
-const instances = new Schema({ _id: String }, { strict: false });
-const core_policies = new Schema({ _id: String }, { strict: false });
-const conversations = new Schema({ _id: String }, { strict: false });
+const projects = new Schema({ _id: String }, { strict: false, versionKey: false });
+const credentials = new Schema({ _id: String }, { strict: false, versionKey: false });
+const endpoints = new Schema({ _id: String }, { strict: false, versionKey: false });
+const nlu_models = new Schema({ _id: String }, { strict: false, versionKey: false });
+const evaluations = new Schema({ _id: String }, { strict: false, versionKey: false });
+const story_groups = new Schema({ _id: String }, { strict: false, versionKey: false });
+const stories = new Schema({ _id: String }, { strict: false, versionKey: false });
+const slots = new Schema({ _id: String }, { strict: false, versionKey: false });
+const instances = new Schema({ _id: String }, { strict: false, versionKey: false });
+const core_policies = new Schema({ _id: String }, { strict: false, versionKey: false });
+const conversations = new Schema({ _id: String }, { strict: false, versionKey: false });
 const activity = new Schema({
     _id: { type: String, default: shortid.generate },
     modelId: { type: String, required: true },
@@ -37,7 +37,7 @@ const activity = new Schema({
     ooS: { type: Boolean, required: false },
     createdAt: { type: Date, required: false, default: Date.now },
     updatedAt: { type: Date, required: false, default: Date.now },
-});
+}, { versionKey: false });
 
 exports.Activity = mongoose.model('Activity', activity, 'activity');
 exports.Conversations = mongoose.model('Conversations', conversations, 'conversations');

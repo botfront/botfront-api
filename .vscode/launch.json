@@ -23,7 +23,7 @@
             "env": {
                 "NODE_ENV": "test",
                 "MONGO_URL": "mongodb://dummy/for-monk",
-                "PORT": "8081"
+                "PORT": "8082"
             },
             "args": [
                 "-u",
@@ -31,8 +31,7 @@
                 "--timeout",
                 "999999",
                 "--colors",
-                "server",
-                "--recursive",
+                "./!(node_modules)/**/*.test.js"
             ],
             "internalConsoleOptions": "openOnSessionStart"
         },
