@@ -14,9 +14,9 @@ const { projects, ...db } = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
 const exportPayloads = [];
 projects.forEach((project, index) => {
     exportPayloads.push({ project });
-    Object.keys(db).forEach((col) => {
+    Object.keys(db).forEach(col => {
         exportPayloads[index][col] = [db[col][index]];
-    })
+    });
 });
 
 before(async function() {
@@ -28,11 +28,11 @@ before(async function() {
 
 describe('## Export', () => {
     describe('# GET /project/{projectId}/export', () => {
-        it('Should retrieve a project backup', (done) => {
+        it('Should retrieve a project backup', done => {
             request(app)
                 .get('/project/one/export')
                 .expect(httpStatus.OK)
-                .then((res) => {
+                .then(res => {
                     const { timestamp, ...body } = res.body;
                     expect(timestamp).to.exist;
                     expect(body).to.deep.equal(exportPayloads[0]);
@@ -45,7 +45,7 @@ describe('## Export', () => {
 
 describe('## Import', () => {
     describe('# PUT /project/{projectId}/import', () => {
-        it('Should reject invalid project backups', (done) => {
+        it('Should reject invalid project backups', done => {
             request(app)
                 .put('/project/one/import')
                 .send({})
@@ -53,14 +53,14 @@ describe('## Import', () => {
                 .then(() => done())
                 .catch(done);
         });
-        it('Should restore from a valid project backup', (done) => {
+        it('Should restore from a valid project backup', done => {
             request(app)
                 .put('/project/one/import') // into project 'one'
                 .send(exportPayloads[1]) // import backup of project 'two'
                 .expect(httpStatus.OK)
-                .then(async (res) => {
+                .then(async res => {
                     expect(res.text).to.be.equal('Success');
-                    
+
                     const projectId = 'one'; // this one will stay
                     const projectName = 'one'; // this one will stay
                     let modelId = 'one'; // this one will change
@@ -79,7 +79,8 @@ describe('## Import', () => {
                         ...exportFileProject
                     } = { ...exportPayloads[1].project };
                     const storyGroup = await allCollections.storyGroups
-                        .findOne({ _id: { $not: { $in: [storyGroupId] } } }, { _id: 1 }).lean();
+                        .findOne({ _id: { $not: { $in: [storyGroupId] } } }, { _id: 1 })
+                        .lean();
                     const exportFileStoryGroupId = exportPayloads[1].storyGroups[0]._id;
 
                     modelId = newNluModels[0]; // remember modelId
@@ -92,16 +93,16 @@ describe('## Import', () => {
                     expect(storyGroupId).to.not.be.equal('one'); // storyGroupId changed...
                     expect(storyGroupId).to.not.be.equal(exportFileStoryGroupId); // ...and yet is different from the one in backup
                     expect(newProject).to.be.deep.equal(exportFileProject); // everything else in project is as in backup
-                    
+
                     for (let col in allCollections) {
                         const {
                             projectId: docProjectId,
                             modelId: docModelId,
                             storyGroupId: docStoryGroupId,
                             ...doc
-                        } = await allCollections[col].findOne({ $or: [
-                            { projectId }, { modelId }, { _id: modelId },
-                        ] }).lean();
+                        } = await allCollections[col]
+                            .findOne({ $or: [{ projectId }, { modelId }, { _id: modelId }] })
+                            .lean();
                         const {
                             projectId: exportFileProjectId,
                             modelId: exportFileModelId,
@@ -116,10 +117,9 @@ describe('## Import', () => {
                         if (docProjectId) expect(docProjectId).to.be.equal(projectId); // projectId didn't change
                         if (docStoryGroupId) expect(docStoryGroupId).to.be.equal(storyGroupId); // storyGroupId is as remembered
 
-                        delete doc._id; delete exportFileDoc._id;
-                        expect(JSON.parse(JSON.stringify(
-                            doc,
-                        ))).to.be.deep.equal(exportFileDoc); // everything else is as in backup
+                        delete doc._id;
+                        delete exportFileDoc._id;
+                        expect(JSON.parse(JSON.stringify(doc))).to.be.deep.equal(exportFileDoc); // everything else is as in backup
                     }
 
                     done();
