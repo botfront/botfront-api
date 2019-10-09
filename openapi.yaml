@@ -362,7 +362,7 @@ paths:
         default:
           description: Unknown error
         400:
-          description: Bad request:
+          description: Bad request
           schema: {error: <errorMessage>}
         401:
           description: Unauthorized
@@ -405,12 +405,12 @@ paths:
         default:
           description: Unknown error
         400:
-          description: Bad request:
-            summary: the format of the parameters was not correct
+          description: Bad request
+          summary: the format of the parameters was not correct
         401:
-          description: Unauthorized;
+          description: Unauthorized
         206:
-          description: Partial Content:
+          description: Partial Content
           summary: some parts of the data were not formated correctly and not added, they are returned in the response body 
         200:
           description: OK
