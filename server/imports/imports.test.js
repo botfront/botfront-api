@@ -42,10 +42,10 @@ before(function(done) {
 });
 
 describe('## last import', () => {
-  describe('# GET /conversations/environment/{env}/latest-imported-event', () => {
+  describe('# GET /conversations/{projectId}/environment/{env}/latest-imported-event', () => {
     it('Should retrieve last import in production', done => {
       request(app)
-        .get('/conversations/environment/production/latest-imported-event')
+        .get('/conversations/pro1/environment/production/latest-imported-event')
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body).to.deep.equal({
@@ -58,7 +58,7 @@ describe('## last import', () => {
 
     it('Should give 0 as no import yet in staging', done => {
       request(app)
-        .get('/conversations/environment/staging/latest-imported-event')
+        .get('/conversations/pro1/environment/staging/latest-imported-event')
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body).to.deep.equal({
@@ -71,7 +71,7 @@ describe('## last import', () => {
 
     it('Should retrieve last import in developement', done => {
       request(app)
-        .get('/conversations/environment/developement/latest-imported-event')
+        .get('/conversations/pro1/environment/developement/latest-imported-event')
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body).to.deep.equal({
@@ -84,7 +84,7 @@ describe('## last import', () => {
 
     it('Should return 400 when envirnonement does not exist', done => {
       request(app)
-        .get('/conversations/environment/prodduction/latest-imported-event')
+        .get('/conversations/pro1/environment/prodduction/latest-imported-event')
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body).to.deep.equal({
@@ -99,10 +99,10 @@ describe('## last import', () => {
 });
 
 describe('## import format checking', () => {
-  describe('# POST /conversations/environment/{env}', () => {
+  describe('# POST /conversations/{projectId}/environment/{env}', () => {
     it('should fail with invalid body', done => {
       request(app)
-        .post('/conversations/environment/production')
+        .post('/conversations/pro1/environment/production')
         .send({
           dummy: [{ name: 'test', confidence: 0.99 }],
           text: 'blabla'
@@ -118,7 +118,7 @@ describe('## import format checking', () => {
     });
     it('should fail with invalid conversations type', done => {
       request(app)
-        .post('/conversations/environment/production')
+        .post('/conversations/pro1/environment/production')
         .send({
           conversations: 'bad',
           processNlu: false
@@ -134,7 +134,7 @@ describe('## import format checking', () => {
     });
     it('should fail with invalid processNlu type', done => {
       request(app)
-        .post('/conversations/environment/production')
+        .post('/conversations/pro1/environment/production')
         .send({
           conversations: [],
           processNlu: 'false'
@@ -150,7 +150,7 @@ describe('## import format checking', () => {
     });
     it('should import a new conversation and update and oldOne', done => {
       request(app)
-        .post('/conversations/environment/production')
+        .post('/conversations/pro1/environment/production')
         .send({
           conversations: conversationsToImport.slice(0, 2),
           processNlu: true
@@ -188,7 +188,7 @@ describe('## import format checking', () => {
 
     it('should not import a conversation with a non existing project id', done => {
       request(app)
-        .post('/conversations/environment/production')
+        .post('/conversations/pro1/environment/production')
         .send({
           conversations: conversationsToImport.slice(2, 3),
           processNlu: true
@@ -212,7 +212,7 @@ describe('## import format checking', () => {
     });
     it('should not import a wrong parse data with a non existing project id', done => {
       request(app)
-        .post('/conversations/environment/production')
+        .post('/conversations/pro1/environment/production')
         .send({
           conversations: conversationsToImport.slice(3),
           processNlu: true

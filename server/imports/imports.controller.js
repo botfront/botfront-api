@@ -3,11 +3,12 @@ const {
   Projects,
   NLUModels,
   Activity
-} = require('../../models/models');
+} = require("../../models/models");
+const { getVerifiedProject } = require("../utils");
 
 retreiveProjectsAndModelsIds = async function() {
   const projects = await Projects.find({})
-    .select('nlu_models _id')
+    .select("nlu_models _id")
     .lean()
     .exec();
   projectAndModels = projects
@@ -15,7 +16,7 @@ retreiveProjectsAndModelsIds = async function() {
     .map(async project => {
       nluModels = await project.nlu_models.map(async projectNluModel => {
         nluModel = NLUModels.findOne({ _id: projectNluModel })
-          .select('_id language')
+          .select("_id language")
           .lean()
           .exec();
         return nluModel;
@@ -46,7 +47,7 @@ addParseDataToActivity = async function(conversation, oldestImportTimestamp) {
     if (
       event.parse_data !== undefined &&
       event.parse_data.language !== undefined &&
-      event.parse_data.text !== '' &&
+      event.parse_data.text !== "" &&
       event.timestamp > oldestImportTimestamp
     ) {
       const { intent, entities, text } = event.parse_data;
@@ -97,98 +98,107 @@ createConversationsToAdd = function(conversations, env, projectsIds) {
 
 exports.importConversation = async function(req, res) {
   const { conversations, processNlu } = req.body;
-  const { env } = req.params;
-  // checks for parameters correctness
-  if (!['production', 'staging', 'developement'].includes(env)) {
-    return res.status(400).json({
-      error: 'environement should be one of: production, staging, developement'
-    });
-  }
-  if (conversations === undefined || processNlu === undefined) {
-    return res.status(400).json({
-      error: 'the body is missing conversations or processNlu, or both'
-    });
-  }
-  if (!Array.isArray(conversations)) {
-    return res.status(400).json({ error: 'conversations should be an array' });
-  }
+  const { project_id: projectId } = req.params;
+  const project = await getVerifiedProject(projectId, req);
+  try {
+    if (!project) throw { code: 401, error: "unauthorized" };
+    const { env } = req.params;
+    // checks for parameters correctness
+    if (!["production", "staging", "developement"].includes(env)) {
+      return res.status(400).json({
+        error:
+          "environement should be one of: production, staging, developement"
+      });
+    }
+    if (conversations === undefined || processNlu === undefined) {
+      return res.status(400).json({
+        error: "the body is missing conversations or processNlu, or both"
+      });
+    }
+    if (!Array.isArray(conversations)) {
+      return res
+        .status(400)
+        .json({ error: "conversations should be an array" });
+    }
 
-  if (typeof processNlu !== 'boolean') {
-    return res.status(400).json({ error: 'processNlu should be an boolean' });
-  }
+    if (typeof processNlu !== "boolean") {
+      return res.status(400).json({ error: "processNlu should be an boolean" });
+    }
 
-  let projectIds = await Projects.find({})
-    .select('_id')
-    .exec();
-  projectIds = projectIds.map(project => project._id);
-  oldestImport = await getOldestTimeStamp(env);
+    let projectIds = await Projects.find({})
+      .select("_id")
+      .exec();
+    projectIds = projectIds.map(project => project._id);
+    oldestImport = await getOldestTimeStamp(env);
 
-  const { toAdd, notValids } = createConversationsToAdd(
-    conversations,
-    env,
-    projectIds
-  );
+    const { toAdd, notValids } = createConversationsToAdd(
+      conversations,
+      env,
+      projectIds
+    );
 
-  //delacred out of the forEach Block so it can be accessed later
-  const invalidParseDatas = [];
-  // add each prepared conversatin to the db, a promise all is used to ensure that all data is added before checking for errors
-  errors = [];
-  await Promise.all(
-    toAdd.map(async conversation => {
-      Conversations.updateOne(
-        { _id: conversation._id },
-        conversation,
-        { upsert: true },
-        function(err) {
-          if (err) errors.push(err);
-        }
-      );
-      if (processNlu) {
-        const {
-          parseDataToAdd,
-          invalidParseData
-        } = await addParseDataToActivity(conversation, oldestImport);
-        if (parseDataToAdd && parseDataToAdd.length > 0) {
-          await Activity.insertMany(parseDataToAdd, function(err) {
+    //delacred out of the forEach Block so it can be accessed later
+    const invalidParseDatas = [];
+    // add each prepared conversatin to the db, a promise all is used to ensure that all data is added before checking for errors
+    errors = [];
+    await Promise.all(
+      toAdd.map(async conversation => {
+        Conversations.updateOne(
+          { _id: conversation._id },
+          conversation,
+          { upsert: true },
+          function(err) {
             if (err) errors.push(err);
-          });
+          }
+        );
+        if (processNlu) {
+          const {
+            parseDataToAdd,
+            invalidParseData
+          } = await addParseDataToActivity(conversation, oldestImport);
+          if (parseDataToAdd && parseDataToAdd.length > 0) {
+            await Activity.insertMany(parseDataToAdd, function(err) {
+              if (err) errors.push(err);
+            });
+          }
+          if (invalidParseData && invalidParseData.length > 0)
+            invalidParseDatas.push(invalidParseData);
         }
-        if (invalidParseData && invalidParseData.length > 0)
-          invalidParseDatas.push(invalidParseData);
-      }
-    })
-  );
+      })
+    );
 
-  if (errors.length > 0) {
-    return res.status(500).json(errors);
-  }
+    if (errors.length > 0) {
+      return res.status(500).json(errors);
+    }
+    //create a report of the errors, if any
+    const formatsError = {};
+    if (notValids && notValids.length > 0) {
+      formatsError.messageConversation =
+        "some conversation were not added, either the _id is missing or projectId does not exist";
+      formatsError.notValids = notValids;
+    }
+    if (invalidParseDatas.length > 0) {
+      formatsError.messageParseData =
+        "Some parseData have not been added to activity, the corresponding models could not be found ";
+      formatsError.invalidParseDatas = invalidParseDatas;
+    }
+    //object not empty
+    if (Object.keys(formatsError).length !== 0) {
+      return res.status(206).json(formatsError);
+    }
 
-  //create a report of the errors, if any
-  const formatsError = {};
-  if (notValids && notValids.length > 0) {
-    formatsError.messageConversation =
-      'some conversation were not added, either the _id is missing or projectId does not exist';
-    formatsError.notValids = notValids;
+    return res
+      .status(200)
+      .json({ message: "successfuly imported all conversations" });
+  } catch (err) {
+    return res.status(err.code || 500).json(err);
   }
-  if (invalidParseDatas.length > 0) {
-    formatsError.messageParseData =
-      'Some parseData have not been added to activity, the corresponding models could not be found ';
-    formatsError.invalidParseDatas = invalidParseDatas;
-  }
-  //object not empty
-  if (Object.keys(formatsError).length !== 0) {
-    return res.status(206).json(formatsError);
-  }
-
-  return res
-    .status(200)
-    .json({ message: 'successfuly imported all conversations' });
 };
 
 getOldestTimeStamp = async function(env) {
   const lastestAddition = await Conversations.findOne({ env: env })
-    .select('updatedAt')
-    .sort('-updatedAt')
+    .select("updatedAt")
+    .sort("-updatedAt")
     .lean()
     .exec();
   if (lastestAddition) return Math.floor(lastestAddition.updatedAt / 1000);
@@ -196,13 +206,21 @@ getOldestTimeStamp = async function(env) {
 };
 
 exports.lastestImport = async function(req, res) {
+  const { project_id: projectId } = req.params;
   const { env } = req.params;
-  // checks for parameters correctness
-  if (!['production', 'staging', 'developement'].includes(env)) {
-    return res.status(400).json({
-      error: 'environement should be one of: production, staging, developement'
-    });
+  try {
+    const project = await getVerifiedProject(projectId, req);
+    if (!project) throw { code: 401, error: "unauthorized" };
+    // checks for parameters correctness
+    if (!["production", "staging", "developement"].includes(env)) {
+      return res.status(400).json({
+        error:
+          "environement should be one of: production, staging, developement"
+      });
+    }
+    const oldest = await getOldestTimeStamp(env);
+    return res.status(200).json({ timestamp: oldest });
+  } catch (err) {
+    return res.status(err.code || 500).json(err);
   }
-  const oldest = await getOldestTimeStamp(env);
-  return res.status(200).json({ timestamp: oldest });
 };

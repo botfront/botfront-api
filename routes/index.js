@@ -46,8 +46,11 @@ router.put('/project/:project_id/import', importProjectValidator, importProject)
 router.get('/project/:project_id/models/published', getPublishedModels);
 router.get('/health-check', (req, res) => res.status(200).json());
 
-router.post('/conversations/environment/:env', importConversation);
-router.get('/conversations/environment/:env/latest-imported-event', lastestImport);
+router.post("/conversations/:project_id/environment/:env", importConversation);
+router.get(
+  "/conversations/:project_id/environment/:env/latest-imported-event",
+  lastestImport
+);
 
 
 module.exports = router;
