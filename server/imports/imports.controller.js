@@ -38,6 +38,7 @@ inferModelId = function(projectId, language, projectsAndModels) {
 addParseDataToActivity = async function(conversation, oldestImportTimestamp) {
   const projectsAndModels = await retreiveProjectsAndModelsIds();
   let parseDataToAdd = [];
+  let invalidParseData = [];
   const projectId = conversation.projectId;
   conversation.tracker.events.forEach(event => {
     if (
@@ -51,27 +52,53 @@ addParseDataToActivity = async function(conversation, oldestImportTimestamp) {
         event.parse_data.language,
         projectsAndModels
       );
-      parseDataToAdd.push({
-        modelId,
-        text,
-        intent: intent.name,
-        entities,
-        confidence: intent.confidence,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
+      if (modelId) {
+        parseDataToAdd.push({
+          modelId,
+          text,
+          intent: intent.name,
+          entities,
+          confidence: intent.confidence,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      } else {
+        invalidParseData.push(event.parse_data);
+      }
     }
   });
-  Activity.insertMany(parseDataToAdd);
+  return { parseDataToAdd, invalidParseData };
+};
+
+createConversationsToAdd = function(conversations, env, projectsIds) {
+  const toAdd = [];
+  const invalids = [];
+  conversations.forEach(conversation => {
+    if (
+      conversation._id !== undefined &&
+      projectsIds.includes(conversation.projectId)
+    ) {
+      toAdd.push({
+        ...conversation,
+        env,
+        updatedAt: new Date(),
+        createdAt: new Date(conversation.createdAt)
+      });
+    } else {
+      invalids.push(conversation);
+    }
+  });
+
+  return { toAdd, notValids };
 };
 
 exports.importConversation = async function(req, res) {
   const { conversations, processNlu } = req.body;
   const { env } = req.params;
   // checks for parameters correctness
-  if (!['production', 'stagging', 'developement'].includes(env)) {
+  if (!['production', 'staging', 'developement'].includes(env)) {
     return res.status(400).json({
-      error: 'environement should be one of: production, stagging, developement'
+      error: 'environement should be one of: production, staging, developement'
     });
   }
   if (!Array.isArray(conversations)) {
@@ -86,39 +113,53 @@ exports.importConversation = async function(req, res) {
     .select('_id')
     .exec();
   projectIds = projectIds.map(project => project._id);
-
-  let notAdded = [];
   oldestImport = await getOldestTimeStamp(env);
 
-  conversations.forEach(conversation => {
-    if (
-      conversation._id !== undefined &&
-      projectIds.includes(conversation.projectId)
-    ) {
-      Conversations.updateOne(
-        { _id: conversation._id },
-        {
-          ...conversation,
-          env,
-          updatedAt: new Date(),
-          createdAt: new Date(conversation.createdAt)
-        },
-        { upsert: true },
-        function(err) {
-          if (err) return res.status(400).json(err);
-        }
+  const { toAdd, notValids } = createConversationsToAdd(
+    conversations,
+    env,
+    projectIds
+  );
+
+  //delacred out of the forEach Block so it can be accessed later
+  const invalidParseDatas = [];
+  // add each prepared conversatin to the db
+  toAdd.forEach(conversation => {
+    Conversations.updateOne(
+      { _id: conversation._id },
+      conversation,
+      { upsert: true },
+      function(err) {
+        if (err) return res.status(400).json(err);
+      }
+    );
+    if (processNlu) {
+      const { parseDataToAdd, invalidParseData } = addParseDataToActivity(
+        conversation,
+        oldestImport
       );
-      if (processNlu) addParseDataToActivity(conversation, oldestImport);
-    } else {
-      notAdded.push(conversation);
+      Activity.insertMany(parseDataToAdd);
+      if (invalidParseData.length > 0) invalidParseDatas.push(invalidParseData);
     }
   });
-  if (notAdded.length > 0)
-    return res.status(206).json({
-      message:
-        'some conversation were not added, either the _id is missing or projectId does not exist',
-      notAdded
-    });
+
+  //create a report of the errors, if any
+  const error = {};
+  if (notValids.length > 0) {
+    error.messageConversation =
+      'some conversation were not added, either the _id is missing or projectId does not exist';
+    error.notValids = notValids;
+  }
+  if (invalidParseDatas.length > 0) {
+    error.messageParseData =
+      'Some parseData have not been added to activity, the corresponding models could not be found ';
+    error.invalidParseDatas = invalidParseDatas;
+  }
+  //object not empty
+  if (Object.keys(error).length !== 0) {
+    return res.status(206).json(error);
+  }
+
   return res
     .status(200)
     .json({ message: 'successfuly imported all conversations' });
@@ -137,9 +178,9 @@ getOldestTimeStamp = async function(env) {
 exports.lastestImport = async function(req, res) {
   const { env } = req.params;
   // checks for parameters correctness
-  if (!['production', 'stagging', 'developement'].includes(env)) {
+  if (!['production', 'staging', 'developement'].includes(env)) {
     return res.status(400).json({
-      error: 'environement should be one of: production, stagging, developement'
+      error: 'environement should be one of: production, staging, developement'
     });
   }
   const oldest = await getOldestTimeStamp(env);
