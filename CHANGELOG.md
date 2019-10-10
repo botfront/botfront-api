@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.16.2](https://github.com/botfront/botfront-api/compare/v0.16.1...v0.16.2) (2019-10-10)
+
+
+### Features
+
+* **export:** add export project route ([74ff123](https://github.com/botfront/botfront-api/commit/74ff123))
+* **import:** add tests ([5f09f23](https://github.com/botfront/botfront-api/commit/5f09f23))
+* **import:** support for story linking ([1a4ba61](https://github.com/botfront/botfront-api/commit/1a4ba61))
+* **import:** wip ([e090092](https://github.com/botfront/botfront-api/commit/e090092))
+
+
+
 ## [0.16.0](https://github.com/botfront/botfront-api/compare/v0.15.6...v0.16.0) (2019-09-09)
 
 ### [0.15.6](https://github.com/botfront/botfront-api/compare/v0.15.1...v0.15.6) (2019-09-09)
