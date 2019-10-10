@@ -1,4 +1,3 @@
 {
-    "python.linting.pylintEnabled": true,
-    "mochaExplorer.files": "./**/*.test.js"
+    "mochaExplorer.files": "./!(node_modules)/**/*.test.js"
 }

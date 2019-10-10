@@ -1,13 +1,10 @@
-/* eslint-disable no-undef */
-/* eslint-disable max-len */
 const request = require('supertest-as-promised');
 const httpStatus = require('http-status');
-const chai = require('chai'); // eslint-disable-line import/newline-after-import
+const chai = require('chai');
 const expect = chai.expect;
 const app = require('../../app');
 chai.config.includeStack = true;
-const Project = require('../project/project.model');
-const Endpoints = require('./endpoints.model');
+const { Projects, Endpoints } = require('../../models/models');
 
 before(function(done) {
     const fs = require('fs');
@@ -15,7 +12,7 @@ before(function(done) {
     const endpointsFile = __dirname + '/test_data/endpoints.json';
     const projects = JSON.parse(fs.readFileSync(projectsFile, 'utf8'));
     const endpoints = JSON.parse(fs.readFileSync(endpointsFile, 'utf8'));
-    Project.insertMany(projects)
+    Projects.insertMany(projects)
         .then(() => Endpoints.insertMany(endpoints))
         .then(() => {
             done();
@@ -38,7 +35,7 @@ describe('## Endpoints', () => {
                 })
                 .catch(done);
         });
-    
+
         it('Should return 401 when project does not exist', done => {
             request(app)
                 .get('/project/kkk/endpoints')
@@ -48,7 +45,7 @@ describe('## Endpoints', () => {
                 })
                 .catch(done);
         });
-    
+
         it('Should return 404 when project has no endpoints', done => {
             request(app)
                 .get('/project/project_without_endpoints/endpoints')
@@ -82,7 +79,5 @@ describe('## Endpoints', () => {
                 })
                 .catch(done);
         });
-
     });
 });
-
