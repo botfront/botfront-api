@@ -299,20 +299,38 @@
     ],
     "stories": [
         {
-            "_id": "one",
-            "title": "one",
+            "_id": "one-a",
+            "title": "one-a",
             "projectId": "one",
             "storyGroupId": "one",
             "branches": [],
             "story": "one"
         },
         {
-            "_id": "two",
-            "title": "two",
+            "_id": "one-b",
+            "title": "one-b",
+            "projectId": "one",
+            "storyGroupId": "one",
+            "branches": [],
+            "story": "one",
+            "checkpoints": ["one-a"]
+        },
+        {
+            "_id": "two-a",
+            "title": "two-a",
             "projectId": "two",
             "storyGroupId": "two",
             "branches": [],
             "story": "two"
+        },
+        {
+            "_id": "two-b",
+            "title": "two-b",
+            "projectId": "two",
+            "storyGroupId": "two",
+            "branches": [],
+            "story": "two",
+            "checkpoints": ["two-a"]
         }
     ],
     "slots": [

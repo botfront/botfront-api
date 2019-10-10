@@ -15,7 +15,14 @@ const exportPayloads = [];
 projects.forEach((project, index) => {
     exportPayloads.push({ project });
     Object.keys(db).forEach(col => {
-        exportPayloads[index][col] = [db[col][index]];
+        const numberOfDocsEach = db[col].length / 2;
+        if (!Number.isInteger(numberOfDocsEach)) throw Error(
+            `Uneven number of docs in collection ${col}`,
+        );
+        exportPayloads[index][col] = db[col].slice(
+            index * numberOfDocsEach,
+            (index + 1) * numberOfDocsEach,
+        );
     });
 });
 
@@ -65,6 +72,7 @@ describe('## Import', () => {
                     const projectName = 'one'; // this one will stay
                     let modelId = 'one'; // this one will change
                     let storyGroupId = 'one'; // this one will change
+                    let checkpoints = ['one-a']; // this one will change
 
                     const {
                         _id: newProjectId,
@@ -79,34 +87,47 @@ describe('## Import', () => {
                         ...exportFileProject
                     } = { ...exportPayloads[1].project };
                     const storyGroup = await allCollections.storyGroups
-                        .findOne({ _id: { $not: { $in: [storyGroupId] } } }, { _id: 1 })
+                        .findOne({ _id: { $nin: [storyGroupId] } }, { _id: 1 })
                         .lean();
                     const exportFileStoryGroupId = exportPayloads[1].storyGroups[0]._id;
+                    const checkpoint = await allCollections.stories
+                        .findOne({ title: 'two-a', _id: { $ne: 'two-a' } })
+                        .lean();
+                    const exportFileCheckpoints = [
+                        exportPayloads[1].stories
+                            .filter(s => !s.title !== checkpoints[0])
+                            .stories,
+                    ];
 
                     modelId = newNluModels[0]; // remember modelId
                     storyGroupId = storyGroup._id; // remember storyGroupId
+                    checkpoints = [checkpoint._id]
 
                     expect(newProjectId).to.be.equal(projectId); // project id didn't change
                     expect(newProjectName).to.be.equal(projectName); // project name didn't change
+                    expect(newProject).to.be.deep.equal(exportFileProject); // everything else in project is as in backup
                     expect(modelId).to.not.be.equal('one'); // modelId changed...
                     expect(modelId).to.not.be.equal(exportFileNluModels[0]); // ...and yet is different from the one in backup
                     expect(storyGroupId).to.not.be.equal('one'); // storyGroupId changed...
                     expect(storyGroupId).to.not.be.equal(exportFileStoryGroupId); // ...and yet is different from the one in backup
-                    expect(newProject).to.be.deep.equal(exportFileProject); // everything else in project is as in backup
+                    expect(checkpoints).to.not.be.deep.equal(['one-a']);
+                    expect(checkpoints).to.not.be.deep.equal(exportFileCheckpoints);
 
                     for (let col in allCollections) {
                         const {
                             projectId: docProjectId,
                             modelId: docModelId,
                             storyGroupId: docStoryGroupId,
+                            checkpoints: docCheckpoints,
                             ...doc
                         } = await allCollections[col]
-                            .findOne({ $or: [{ projectId }, { modelId }, { _id: modelId }] })
+                            .findOne({ $or: [{ projectId }, { modelId }, { _id: modelId }, { checkpoints }] })
                             .lean();
                         const {
                             projectId: exportFileProjectId,
                             modelId: exportFileModelId,
                             storyGroupId: exportFileStoryGroupId,
+                            checkpoints: exportFileCheckpoints,
                             ...exportFileDoc
                         } = { ...exportPayloads[1][col][0] };
 
@@ -116,6 +137,7 @@ describe('## Import', () => {
                         if (docModelId) expect(docModelId).to.be.equal(modelId); // modelId is as remembered
                         if (docProjectId) expect(docProjectId).to.be.equal(projectId); // projectId didn't change
                         if (docStoryGroupId) expect(docStoryGroupId).to.be.equal(storyGroupId); // storyGroupId is as remembered
+                        if (docCheckpoints) expect(docCheckpoints).to.be.deep.equal(checkpoints);
 
                         delete doc._id;
                         delete exportFileDoc._id;

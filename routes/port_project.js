@@ -74,9 +74,13 @@ const nativizeProject = function(projectId, projectName, backup) {
 
     if ('storyGroups' in nativizedBackup && 'stories' in nativizedBackup) {
         const storyGroupMapping = {};
+        const storyMapping = {};
         nativizedBackup.storyGroups.forEach(m =>
             Object.assign(storyGroupMapping, { [m._id]: uuidv4() }),
-        ); // generate mapping from old to new id
+        );
+        nativizedBackup.stories.forEach(m =>
+            Object.assign(storyMapping, { [m._id]: uuidv4() }),
+        )
         nativizedBackup.storyGroups = nativizedBackup.storyGroups.map(sg => ({
             ...sg,
             _id: storyGroupMapping[sg._id],
@@ -84,6 +88,9 @@ const nativizeProject = function(projectId, projectName, backup) {
         nativizedBackup.stories = nativizedBackup.stories.map(s => ({
             ...s,
             storyGroupId: storyGroupMapping[s.storyGroupId],
+            ...(s.checkpoints && {
+                checkpoints: s.checkpoints.map(checkpoint => storyMapping[checkpoint._id]),
+            }),
         })); // apply to stories
     }
 
