@@ -38,11 +38,14 @@ inferModelId = function(projectId, language, projectsAndModels) {
   return undefined;
 };
 
-addParseDataToActivity = async function(conversation, oldestImportTimestamp) {
+addParseDataToActivity = async function(
+  projectId,
+  conversation,
+  oldestImportTimestamp
+) {
   const projectsAndModels = await retreiveProjectsAndModelsIds();
   let parseDataToAdd = [];
   let invalidParseData = [];
-  const projectId = conversation.projectId;
   conversation.tracker.events.forEach(event => {
     if (
       event.parse_data !== undefined &&
@@ -74,16 +77,14 @@ addParseDataToActivity = async function(conversation, oldestImportTimestamp) {
   return { parseDataToAdd, invalidParseData };
 };
 
-createConversationsToAdd = function(conversations, env, projectsIds) {
+createConversationsToAdd = function(conversations, env, projectId) {
   const toAdd = [];
   const notValids = [];
   conversations.forEach(conversation => {
-    if (
-      conversation._id !== undefined &&
-      projectsIds.includes(conversation.projectId)
-    ) {
+    if (conversation._id !== undefined) {
       toAdd.push({
         ...conversation,
+        projectId,
         env,
         updatedAt: new Date(),
         createdAt: new Date(conversation.createdAt)
@@ -125,16 +126,11 @@ exports.importConversation = async function(req, res) {
       return res.status(400).json({ error: "processNlu should be an boolean" });
     }
 
-    let projectIds = await Projects.find({})
-      .select("_id")
-      .exec();
-    projectIds = projectIds.map(project => project._id);
     oldestImport = await getOldestTimeStamp(env);
-
     const { toAdd, notValids } = createConversationsToAdd(
       conversations,
       env,
-      projectIds
+      projectId
     );
 
     //delacred out of the forEach Block so it can be accessed later
@@ -155,7 +151,11 @@ exports.importConversation = async function(req, res) {
           const {
             parseDataToAdd,
             invalidParseData
-          } = await addParseDataToActivity(conversation, oldestImport);
+          } = await addParseDataToActivity(
+            projectId,
+            conversation,
+            oldestImport
+          );
           if (parseDataToAdd && parseDataToAdd.length > 0) {
             await Activity.insertMany(parseDataToAdd, function(err) {
               if (err) errors.push(err);
@@ -174,12 +174,12 @@ exports.importConversation = async function(req, res) {
     const formatsError = {};
     if (notValids && notValids.length > 0) {
       formatsError.messageConversation =
-        "some conversation were not added, either the _id is missing or projectId does not exist";
+        "some conversation were not added, the field _id is missing";
       formatsError.notValids = notValids;
     }
     if (invalidParseDatas.length > 0) {
       formatsError.messageParseData =
-        "Some parseData have not been added to activity, the corresponding models could not be found ";
+        "Some parseData have not been added to activity, the corresponding models could not be found";
       formatsError.invalidParseDatas = invalidParseDatas;
     }
     //object not empty

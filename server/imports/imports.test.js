@@ -165,11 +165,13 @@ describe('## import format checking', () => {
             .exec()
             .then(newData => {
               expect(newData).to.have.length(1);
+              expect(newData[0].projectId).to.equal('pro1');
               Conversations.find({ _id: 'update' })
                 .lean()
                 .exec()
                 .then(updateData => {
                   expect(updateData).to.have.length(1);
+                  expect(updateData[0].projectId).to.equal('pro1');
                   expect(updateData[0].updatedAt).to.not.equal(
                     new Date(1550000000)
                   );
@@ -186,7 +188,7 @@ describe('## import format checking', () => {
         });
     });
 
-    it('should not import a conversation with a non existing project id', done => {
+    it('should not import a conversation with a non undefined id', done => {
       request(app)
         .post('/conversations/pro1/environment/production')
         .send({
@@ -197,7 +199,7 @@ describe('## import format checking', () => {
         .then(async res => {
           expect(res.body).to.deep.equal({
             messageConversation:
-              'some conversation were not added, either the _id is missing or projectId does not exist',
+              'some conversation were not added, the field _id is missing',
             notValids: [conversationsToImport[2]]
           });
           Conversations.find({ _id: 'projectnotexist' })
@@ -210,7 +212,7 @@ describe('## import format checking', () => {
         })
         .catch(done);
     });
-    it('should not import a wrong parse data with a non existing project id', done => {
+    it('should not import a parse data with unsupported language (no corresponding model)', done => {
       request(app)
         .post('/conversations/pro1/environment/production')
         .send({
@@ -221,9 +223,9 @@ describe('## import format checking', () => {
         .then(async res => {
           expect(res.body).to.deep.equal({
             messageParseData:
-              'Some parseData have not been added to activity, the corresponding models could not be found ',
+              'Some parseData have not been added to activity, the corresponding models could not be found',
             invalidParseDatas: [
-              [conversationsToImport[3].tracker.events[6].parse_data]
+              [conversationsToImport[3].tracker.events[0].parse_data]
             ]
           });
           Conversations.find({ _id: 'projectnotexist' })
