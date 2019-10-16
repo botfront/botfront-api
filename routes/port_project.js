@@ -133,6 +133,7 @@ exports.exportProject = async function(req, res) {
     const { project_id: projectId } = req.params;
     try {
         const project = await getVerifiedProject(projectId, req);
+        if (!project) throw { code: 401, error: 'unauthorized' };
         const models = await NLUModels.find({ _id: { $in: project.nlu_models } }).lean();
         const response = { project, models };
         for (let col in collectionsWithModelId) {

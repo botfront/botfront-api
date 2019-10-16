@@ -7,14 +7,13 @@ const isRequestTrusted = req => {
     // This indicates the request comes from within the cluster so we trust it and no auth is needed
     return (
         (process.env.K8S_NAMESPACE && process.env.K8S_NAMESPACE.matches(req.hostname)) ||
-        req.hostname === 'localhost'
+        req.hostname === 'localhost' || req.hostname === '127.0.0.1' || process.env.DISABLE_API_KEY
     );
 };
 
 const addKeyToQuery = (q, req) => {
-    const { query: { key: apiKey = null } = {} } = req;
-    if (apiKey && !isRequestTrusted(req)) Object.assign(q, { apiKey });
-    return q;
+    const { query: { key: apiKey = 'no-api-key' } = {} } = req;
+    return { ...q, apiKey };
 };
 
 /**
@@ -23,6 +22,9 @@ const addKeyToQuery = (q, req) => {
  */
 exports.getVerifiedProject = function(projectId, req, projection) {
     const selection = projection ? { _id: 1, ...projection } : null;
+    if (isRequestTrusted(req)) {
+        return Projects.findOne({ _id: projectId }, selection).lean();
+    }
     return Projects.findOne(addKeyToQuery({ _id: projectId }, req), selection).lean();
 };
 
