@@ -15,6 +15,7 @@ const {
 const { validationResult, body } = require('express-validator/check');
 const { getVerifiedProject } = require('../server/utils');
 const uuidv4 = require('uuid/v4');
+const JSZip = require('jszip');
 
 const collectionsWithModelId = {
     activity: Activity,
@@ -125,6 +126,16 @@ const overwriteCollection = async function(projectId, modelIds, collection, back
     await model.insertMany(backup[collection]);
 };
 
+const zipFile = async (response) => {
+    const zip = new JSZip();
+    zip.file('backup.json', JSON.stringify(response));
+    return zip.generateAsync({
+        type: 'nodebuffer',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 9 },
+    });
+}
+
 exports.exportProjectValidator = [];
 
 exports.exportProject = async function(req, res) {
@@ -132,6 +143,7 @@ exports.exportProject = async function(req, res) {
     if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
 
     const { project_id: projectId } = req.params;
+    const { output = 'zip' } = req.query;
     try {
         const project = await getVerifiedProject(projectId, req);
         if (!project) throw { code: 401, error: 'unauthorized' };
@@ -146,9 +158,16 @@ exports.exportProject = async function(req, res) {
             response[col] = await collectionsWithProjectId[col].find({ projectId }).lean();
         }
         response.timestamp = new Date().getTime();
+        
+        if (output === 'json') {
+            return res.status(200)
+                .attachment(`${project.name}-${response.timestamp}.json`)
+                .json(response);
+        }
+        const zippedBackup = await zipFile(response);
         return res.status(200)
-            .attachment(`${project.name}-${response.timestamp}.json`)
-            .json(response);
+            .attachment(`${project.name}-${response.timestamp}.botfront`)
+            .send(zippedBackup);
     } catch (err) {
         return res.status(500).json(err);
     }

@@ -37,7 +37,7 @@ describe('## Export', () => {
     describe('# GET /project/{projectId}/export', () => {
         it('Should retrieve a project backup', done => {
             request(app)
-                .get('/project/one/export')
+                .get('/project/one/export?output=json')
                 .expect(httpStatus.OK)
                 .then(res => {
                     const { timestamp, ...body } = res.body;
