@@ -88,8 +88,9 @@ const nativizeProject = function(projectId, projectName, backup) {
         nativizedBackup.stories = nativizedBackup.stories.map(s => ({
             ...s,
             storyGroupId: storyGroupMapping[s.storyGroupId],
+            _id: storyMapping[s._id],
             ...(s.checkpoints && {
-                checkpoints: s.checkpoints.map(checkpoint => storyMapping[checkpoint._id]),
+                checkpoints: s.checkpoints.map(checkpoint => [storyMapping[checkpoint[0]], ...checkpoint.slice(1)]),
             }),
         })); // apply to stories
     }
@@ -104,7 +105,7 @@ const nativizeProject = function(projectId, projectName, backup) {
 
     Object.keys(nativizedBackup).forEach(col => {
         // change id of every other doc
-        if (!['project', 'models', 'storyGroups'].includes(col)) {
+        if (!['project', 'models', 'storyGroups', 'stories'].includes(col)) {
             nativizedBackup[col] = nativizedBackup[col].map(doc => ({ ...doc, _id: uuidv4() }));
         }
     });

@@ -101,7 +101,7 @@ describe('## Import', () => {
 
                     modelId = newNluModels[0]; // remember modelId
                     storyGroupId = storyGroup._id; // remember storyGroupId
-                    checkpoints = [checkpoint._id]
+                    checkpoints = [[checkpoint._id]]
 
                     expect(newProjectId).to.be.equal(projectId); // project id didn't change
                     expect(newProjectName).to.be.equal(projectName); // project name didn't change
