@@ -136,6 +136,14 @@ const zipFile = async (response) => {
     });
 }
 
+const unzipFile = async (body) => {
+    const zip = new JSZip();
+    await zip.loadAsync(body);
+    const data = await zip.file('backup.json')
+        .async('string');
+    return JSON.parse(data);
+}
+
 exports.exportProjectValidator = [];
 
 exports.exportProject = async function(req, res) {
@@ -173,29 +181,33 @@ exports.exportProject = async function(req, res) {
     }
 };
 
-exports.importProjectValidator = [
-    body('project', 'is required').custom(
-        project =>
+const importProjectValidator = [
+    [
+        'Project is required',
+        ({ project }) =>
             project &&
             ['_id', 'name', 'defaultLanguage', 'nlu_models', 'templates'].every(prop =>
                 Object.keys(project).includes(prop),
             ),
-    ),
-    body('', `is required to include ${Object.keys(allCollections).join(', ')}`) // for now, require every collection to be found in backup
-        .custom(
-            body =>
-                body && Object.keys(allCollections).every(col => Object.keys(body).includes(col)),
-        ),
-];
+    ],
+    [
+        `Body is required to include ${Object.keys(allCollections).join(', ')}`,
+        body => body && Object.keys(allCollections).every(col => Object.keys(body).includes(col)),
+    ],
+]
 
 exports.importProject = async function(req, res) {
     const { project_id: projectId } = req.params;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
+    const body = req.body instanceof Buffer
+        ? await unzipFile(req.body)
+        : req.body;
     try {
         const project = await getVerifiedProject(projectId, req);
         if (!project) throw { code: 401, error: 'unauthorized' };
-        const backup = nativizeProject(projectId, project.name, req.body);
+        importProjectValidator.forEach(([message, validator]) => {
+            if (!validator(body)) throw { code: 422, error: message };
+        })
+        const backup = nativizeProject(projectId, project.name, body);
         for (let col in collections) {
             await overwriteCollection(projectId, project.nlu_models, col, backup);
         }
@@ -206,6 +218,6 @@ exports.importProject = async function(req, res) {
         return res.status(200).send('Success');
     } catch (e) {
         console.log(e);
-        return res.status(500).json(e);
+        return res.status(e.code || 500).json(e.error);
     }
 };
