@@ -47,6 +47,19 @@ describe('## Export', () => {
                 })
                 .catch(done);
         });
+        it('Should retrieve a project backup without conversations and evaluations', done => {
+            request(app)
+                .get('/project/one/export?output=json&conversations=false&evaluations=0')
+                .expect(httpStatus.OK)
+                .then(res => {
+                    const { evaluations, conversations, ...rest } = exportPayloads[0];
+                    const { timestamp, ...body } = res.body;
+                    expect(timestamp).to.exist;
+                    expect(body).to.deep.equal(rest);
+                    done();
+                })
+                .catch(done);
+        });
     });
 });
 

@@ -12,7 +12,7 @@ const {
     Credentials,
     Projects,
 } = require('../models/models');
-const { validationResult, body } = require('express-validator/check');
+const { validationResult } = require('express-validator/check');
 const { getVerifiedProject } = require('../server/utils');
 const uuidv4 = require('uuid/v4');
 const JSZip = require('jszip');
@@ -152,18 +152,24 @@ exports.exportProject = async function(req, res) {
 
     const { project_id: projectId } = req.params;
     const { output = 'zip' } = req.query;
+    const excludedCollections = Object.keys(req.query)
+        .filter(k => ['0', 'false'].includes(req.query[k]));
     try {
         const project = await getVerifiedProject(projectId, req);
         if (!project) throw { code: 401, error: 'unauthorized' };
         const models = await NLUModels.find({ _id: { $in: project.nlu_models } }).lean();
         const response = { project, models };
         for (let col in collectionsWithModelId) {
-            response[col] = await collectionsWithModelId[col]
-                .find({ modelId: { $in: project.nlu_models } })
-                .lean();
+            if (!excludedCollections.includes(col)) {
+                response[col] = await collectionsWithModelId[col]
+                    .find({ modelId: { $in: project.nlu_models } })
+                    .lean();
+            }
         }
         for (let col in collectionsWithProjectId) {
-            response[col] = await collectionsWithProjectId[col].find({ projectId }).lean();
+            if (!excludedCollections.includes(col)) {
+                response[col] = await collectionsWithProjectId[col].find({ projectId }).lean();
+            }
         }
         response.timestamp = new Date().getTime();
         
