@@ -196,10 +196,10 @@ const importProjectValidator = [
                 Object.keys(project).includes(prop),
             ),
     ],
-    [
-        `Body is required to include ${Object.keys(allCollections).join(', ')}`,
-        body => body && Object.keys(allCollections).every(col => Object.keys(body).includes(col)),
-    ],
+    // [
+    //     `Body is required to include ${Object.keys(allCollections).join(', ')}`,
+    //     body => body && Object.keys(allCollections).every(col => Object.keys(body).includes(col)),
+    // ],
 ]
 
 exports.importProject = async function(req, res) {
