@@ -105,10 +105,9 @@ exports.importConversation = async function(req, res) {
     if (!project) throw { code: 401, error: "unauthorized" };
     const { env } = req.params;
     // checks for parameters correctness
-    if (!["production", "staging", "developement"].includes(env)) {
+    if (!["production", "staging", "development"].includes(env)) {
       return res.status(400).json({
-        error:
-          "environement should be one of: production, staging, developement"
+        error: "environement should be one of: production, staging, development"
       });
     }
     if (conversations === undefined || processNlu === undefined) {
@@ -212,10 +211,9 @@ exports.lastestImport = async function(req, res) {
     const project = await getVerifiedProject(projectId, req);
     if (!project) throw { code: 401, error: "unauthorized" };
     // checks for parameters correctness
-    if (!["production", "staging", "developement"].includes(env)) {
+    if (!["production", "staging", "development"].includes(env)) {
       return res.status(400).json({
-        error:
-          "environement should be one of: production, staging, developement"
+        error: "environement should be one of: production, staging, development"
       });
     }
     const oldest = await getOldestTimeStamp(env);

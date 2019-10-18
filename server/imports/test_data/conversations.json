@@ -660,7 +660,7 @@
     "projectId": "pro1",
     "createdAt": 1400000000,
     "updatedAt": 1450000000,
-    "env": "developement"
+    "env": "development"
   },
   {
     "_id": "stagenoupdate",
