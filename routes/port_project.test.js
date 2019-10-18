@@ -37,12 +37,25 @@ describe('## Export', () => {
     describe('# GET /project/{projectId}/export', () => {
         it('Should retrieve a project backup', done => {
             request(app)
-                .get('/project/one/export')
+                .get('/project/one/export?output=json')
                 .expect(httpStatus.OK)
                 .then(res => {
                     const { timestamp, ...body } = res.body;
                     expect(timestamp).to.exist;
                     expect(body).to.deep.equal(exportPayloads[0]);
+                    done();
+                })
+                .catch(done);
+        });
+        it('Should retrieve a project backup without conversations and evaluations', done => {
+            request(app)
+                .get('/project/one/export?output=json&conversations=false&evaluations=0')
+                .expect(httpStatus.OK)
+                .then(res => {
+                    const { evaluations, conversations, ...rest } = exportPayloads[0];
+                    const { timestamp, ...body } = res.body;
+                    expect(timestamp).to.exist;
+                    expect(body).to.deep.equal(rest);
                     done();
                 })
                 .catch(done);
@@ -101,7 +114,7 @@ describe('## Import', () => {
 
                     modelId = newNluModels[0]; // remember modelId
                     storyGroupId = storyGroup._id; // remember storyGroupId
-                    checkpoints = [checkpoint._id]
+                    checkpoints = [[checkpoint._id]]
 
                     expect(newProjectId).to.be.equal(projectId); // project id didn't change
                     expect(newProjectName).to.be.equal(projectName); // project name didn't change

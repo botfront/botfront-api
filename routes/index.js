@@ -41,7 +41,7 @@ router.get('/project/:project_id/credentials/:environment?/', getProjectCredenti
 router.get('/project/:project_id/endpoints/:environment?/', getProjectEndpoints);
 
 router.get('/project/:project_id/export', exportProjectValidator, exportProject);
-router.put('/project/:project_id/import', importProjectValidator, importProject);
+router.put('/project/:project_id/import', importProject);
 
 router.get('/project/:project_id/models/published', getPublishedModels);
 router.get('/health-check', (req, res) => res.status(200).json());
