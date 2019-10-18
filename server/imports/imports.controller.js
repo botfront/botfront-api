@@ -6,32 +6,23 @@ const {
 } = require("../../models/models");
 const { getVerifiedProject } = require("../utils");
 
-retreiveProjectsAndModelsIds = async function() {
-  const projects = await Projects.find({})
-    .select("nlu_models _id")
+retreiveModelsIds = async function(projectId) {
+  const { nlu_models: modelsIds } = await Projects.findOne({ _id: projectId })
+    .select("nlu_models -_id")
     .lean()
     .exec();
-  projectAndModels = projects
-    .filter(project => project.nlu_models !== undefined)
-    .map(async project => {
-      nluModels = await project.nlu_models.map(async projectNluModel => {
-        nluModel = NLUModels.findOne({ _id: projectNluModel })
-          .select("_id language")
-          .lean()
-          .exec();
-        return nluModel;
-      });
-      nluModels = await Promise.all(nluModels);
-      return { projectId: project._id, nluModels: nluModels };
-    });
-  return await Promise.all(projectAndModels);
+  modelsAndLang = modelsIds.map(async modelId => {
+    nluModel = NLUModels.findOne({ _id: modelId })
+      .select("_id language")
+      .lean()
+      .exec();
+    return nluModel;
+  });
+  return await Promise.all(modelsAndLang);
 };
 
-inferModelId = function(projectId, language, projectsAndModels) {
-  const project = projectsAndModels.find(
-    projectAndModels => projectAndModels.projectId === projectId
-  );
-  const modelId = project.nluModels.find(
+inferModelId = function(language, projectsAndModels) {
+  const modelId = projectsAndModels.find(
     nluModel => nluModel.language === language
   );
   if (modelId) return modelId._id;
@@ -43,7 +34,7 @@ addParseDataToActivity = async function(
   conversation,
   oldestImportTimestamp
 ) {
-  const projectsAndModels = await retreiveProjectsAndModelsIds();
+  const modelsOfProject = await retreiveModelsIds(projectId);
   let parseDataToAdd = [];
   let invalidParseData = [];
   conversation.tracker.events.forEach(event => {
@@ -54,11 +45,7 @@ addParseDataToActivity = async function(
       event.timestamp > oldestImportTimestamp
     ) {
       const { intent, entities, text } = event.parse_data;
-      const modelId = inferModelId(
-        projectId,
-        event.parse_data.language,
-        projectsAndModels
-      );
+      const modelId = inferModelId(event.parse_data.language, modelsOfProject);
       if (modelId) {
         parseDataToAdd.push({
           modelId: modelId,
