@@ -13,6 +13,7 @@ const { getSenderEventCount, insertConversation, updateConversation } = require(
 const { getProjectCredentials } = require('../server/credentials/credentials.controller');
 const { getProjectEndpoints } = require('../server/endpoints/endpoints.controller');
 const { getPublishedModels } = require('../server/nlu_models/nlu_models.controller');
+const { importConversation, importConversationValidator, lastestImport, lastestImportValidator } = require('../server/imports/imports.controller');
 const {
     exportProject,
     exportProjectValidator,
@@ -44,5 +45,9 @@ router.put('/project/:project_id/import', importProjectValidator, importProject)
 
 router.get('/project/:project_id/models/published', getPublishedModels);
 router.get('/health-check', (req, res) => res.status(200).json());
+
+router.post('/conversations/:project_id/environment/:env', importConversationValidator, importConversation);
+router.get('/conversations/:project_id/environment/:env/latest-imported-event', lastestImportValidator, lastestImport);
+
 
 module.exports = router;

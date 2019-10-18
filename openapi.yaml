@@ -3,41 +3,41 @@ info:
   description: "Botfront API"
   title: "Botfront API"
 consumes:
-- "application/json"
+  - "application/json"
 produces:
-- "application/json"
+  - "application/json"
 schemes:
-- "https"
+  - "https"
 
 paths:
   "/project/{project_id}/response/name/{name}/lang/{lang}":
     get:
       summary: Retrieve a bot response with its name
-      description:  >
+      description: >
         A bot response is a sequence of messages in the Botfront format. The JSON example below shows a simple text message but all the Botfront message types (Quick replies, images, Facebook templates, ...) can be returned in that array. 
-        Use the Bot Responses section of the Botfront app for a complete refence ( in `yaml`). 
+        Use the Bot Responses section of the Botfront app for a complete refence ( in `yaml`).
       operationId: getBotResponse
       parameters:
-      - name: project_id
-        in: path
-        description: Botfront project ID
-        required: true
-        type: string
-      - name: name
-        in: path
-        description: Bot response name
-        required: true
-        type: string
-      - name: lang
-        in: path
-        description: The bot response language
-        required: true
-        type: string
-      - name: metadata
-        in: query
-        description: if metadata is set to 1, the metadata field will be included in the response sequence
-        required: false
-        type: integer
+        - name: project_id
+          in: path
+          description: Botfront project ID
+          required: true
+          type: string
+        - name: name
+          in: path
+          description: Bot response name
+          required: true
+          type: string
+        - name: lang
+          in: path
+          description: The bot response language
+          required: true
+          type: string
+        - name: metadata
+          in: query
+          description: if metadata is set to 1, the metadata field will be included in the response sequence
+          required: false
+          type: integer
       responses:
         default:
           description: Unknown error
@@ -50,27 +50,27 @@ paths:
         200:
           description: Succesfull response
           schema:
-            $ref: '#/definitions/sequence'
-          
+            $ref: "#/definitions/sequence"
+
   "/project/{project_id}/responses":
     get:
       operationId: getAllResponses
       parameters:
-      - name: project_id
-        in: path
-        description: Botfront project ID
-        required: true
-        type: string
-      - name: timestamp
-        in: query
-        description: timestamp in ms of last update
-        required: false
-        type: number
-      - name: metadata
-        in: query
-        description: if metadata is set to 1, the metadata field will be included in the response sequence
-        required: false
-        type: integer
+        - name: project_id
+          in: path
+          description: Botfront project ID
+          required: true
+          type: string
+        - name: timestamp
+          in: query
+          description: timestamp in ms of last update
+          required: false
+          type: number
+        - name: metadata
+          in: query
+          description: if metadata is set to 1, the metadata field will be included in the response sequence
+          required: false
+          type: integer
       produces:
         - application/json
       summary: Retrieve all bot responses. If you pass the `timestamp` query param it will compare it with the last update time of the responses. If they have not been modified, a 304 response is returned. This allows to periodically check for updates
@@ -82,7 +82,7 @@ paths:
         200:
           description: OK
           schema:
-            $ref: '#/definitions/bot_responses'
+            $ref: "#/definitions/bot_responses"
         304:
           description: Not modified
 
@@ -90,25 +90,25 @@ paths:
     post:
       operationId: getResponse
       parameters:
-      - name: project_id
-        in: path
-        description: Botfront project ID
-        required: true
-        type: string
-      - in: body
-        name: body
-        description: NLU information the response should match
-        schema:
-          $ref: '#/definitions/matching_criteria'
-      - name: metadata
-        in: query
-        description: if metadata is set to 1, the metadata field will be included in the response sequence
-        required: false
-        type: integer
+        - name: project_id
+          in: path
+          description: Botfront project ID
+          required: true
+          type: string
+        - in: body
+          name: body
+          description: NLU information the response should match
+          schema:
+            $ref: "#/definitions/matching_criteria"
+        - name: metadata
+          in: query
+          description: if metadata is set to 1, the metadata field will be included in the response sequence
+          required: false
+          type: integer
       produces:
         - application/json
       summary: Retrieve a bot response matching NLU criteria
-      description:  >
+      description: >
         A bot response is a sequence of messages in the Botfront format. The JSON example below shows a simple text message but all the Botfront message types (Quick replies, images, Facebook templates, ...) can be returned in that array. 
         Use the Bot Responses section of the Botfront app for a complete refence ( in `yaml`). 
 
@@ -125,7 +125,7 @@ paths:
         200:
           description: OK
           schema:
-            $ref: '#/definitions/bot_response'
+            $ref: "#/definitions/bot_response"
 
   # "/project/{project_id}/tracker/{sender_id}/tag/{tag}":
   #   get:
@@ -158,7 +158,7 @@ paths:
   #         description: Unauthorized
   #       200:
   #         description: Ok
-            
+
   # "/project/{project_id}/conversations/{sender_id}/{event_count}":
   #   get:
   #     summary: Gets a tracker with the `event_count` latest events.
@@ -191,7 +191,6 @@ paths:
   #       200:
   #         description: Ok
 
-
   # "/project/{project_id}/conversations/{sender_id}/insert":
   #   post:
   #     summary: Creates a new tracker.
@@ -219,7 +218,7 @@ paths:
   #         description: Unauthorized
   #       200:
   #         description: Ok
-          
+
   # "/project/{project_id}/conversations/{sender_id}/update":
   #   post:
   #     summary: Updates conversation tracker.
@@ -294,7 +293,6 @@ paths:
   #       200:
   #         description: Ok
 
-
   # "/project/{project_id}/endpoints":
   #   get:
   #     summary: Returns CORE endpoints.
@@ -324,11 +322,11 @@ paths:
       # description: Parse an utterance and returns NLU structured output.
       operationId: getModelsPublished
       parameters:
-      - name: project_id
-        in: path
-        description: Botfront project ID
-        required: true
-        type: string
+        - name: project_id
+          in: path
+          description: Botfront project ID
+          required: true
+          type: string
       responses:
         default:
           description: Unknown error
@@ -340,6 +338,81 @@ paths:
           description: Unauthorized
         200:
           description: Ok
+
+  "/conversations/{projectId}/environment/{env}/latest-imported-event":
+    get:
+      operationId: getLastestImportedEvent,
+      parameters:
+        - name: project_id
+          in: path
+          description: Botfront project ID
+          required: true
+          type: string
+        - name: env
+          in: path
+          description: environement to get latest imported event from, should be one of production, staging, development
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        default:
+          description: Unknown error
+        400:
+          description: Bad request
+          schema: { error: <errorMessage> }
+        401:
+          description: Unauthorized
+        200:
+          description: OK
+          schema:
+            $ref: "#/definitions/timestamp"
+        500:
+          description: Internal Server Error
+
+  "/conversations/{projectId}/environment/{env}":
+    post:
+      operationId: importNewConversation,
+      parameters:
+        - name: project_id
+          in: path
+          description: Botfront project ID
+          required: true
+          type: string
+        - name: env
+          in: path
+          description: environement to import to, should be one of production, staging, development
+          required: true
+          type: string
+        - name: conversations
+          in: body
+          description: conversations to import
+          required: true
+          type: array
+          schema:
+            $ref: "#/definitions/conversations"
+        - name: processNlu
+          in: body
+          description: copy parse_data to activity if true
+          required: true
+          type: boolean
+      produces:
+        - application/json
+      responses:
+        default:
+          description: Unknown error
+        400:
+          description: Bad request
+          summary: the format of the parameters was not correct
+        401:
+          description: Unauthorized
+        206:
+          description: Partial Content
+          summary: some parts of the data were not formated correctly and not added, they are returned in the response body
+        200:
+          description: OK
+        500:
+          description: Internal Server Error
 
   "/api-docs":
     get:
@@ -357,11 +430,11 @@ paths:
     get:
       summary: API documentation
       parameters:
-      - name: file
-        in: path
-        description: Botfront project ID
-        required: true
-        type: string
+        - name: file
+          in: path
+          description: Botfront project ID
+          required: true
+          type: string
       security: []
       # description: Parse an utterance and returns NLU structured output.
       operationId: apiDocsDeps
@@ -370,22 +443,22 @@ paths:
           description: Unknown error
         200:
           description: Ok
-          
+
 definitions:
   matching_criteria:
     type: object
     properties:
       nlu:
         type: object
-        properties: 
-          intent: 
+        properties:
+          intent:
             type: string
             example: greet
           entities:
             type: array
             items:
               type: object
-              properties: 
+              properties:
                 entity:
                   type: string
                   example: city
@@ -395,28 +468,40 @@ definitions:
   bot_response:
     type: object
     properties:
-      key: 
+      key:
         type: string
         example: utter_something
-      follow_up: 
+      follow_up:
         type: string
         example: utter_something
       values:
         type: array
         items:
-          $ref: '#/definitions/sequence'
+          $ref: "#/definitions/sequence"
   sequence:
     description: test
     type: array
     items:
-      $ref: '#/definitions/quick_replies'
-  
+      $ref: "#/definitions/quick_replies"
+
+  timestamp:
+    properties:
+      timestamp:
+        type: integer
+        example: 1550677361363
+
   message:
     type: object
     properties:
       text:
         type: string
         example: Something
+
+  conversations:
+    definition: array of conversation element from the db
+    type: array
+    items:
+      type: object
 
   bot_responses:
     type: object
@@ -438,14 +523,14 @@ definitions:
                 type: object
                 properties:
                   sequence:
-                    $ref: '#/definitions/sequence'
+                    $ref: "#/definitions/sequence"
                   lang:
                     type: string
-                    example: 'fr'
+                    example: "fr"
             match:
               type: object
-              $ref: '#/definitions/matching_criteria'
-  
+              $ref: "#/definitions/matching_criteria"
+
   quick_replies:
     type: object
     properties:
@@ -463,11 +548,9 @@ definitions:
             payload:
               type: string
               example: "/basics.yes"
-              
-
 
 security:
-- api_key: []
+  - api_key: []
 
 securityDefinitions:
   # This section configures basic authentication with an API key.
@@ -475,5 +558,3 @@ securityDefinitions:
     type: "apiKey"
     name: "key"
     in: "query"
- 
-  
