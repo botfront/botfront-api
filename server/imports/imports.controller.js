@@ -102,7 +102,8 @@ exports.importConversationValidator = [
 
 exports.importConversation = async function(req, res) {
   const paramsErrors = validationResult(req);
-  if (!paramsErrors.isEmpty()) return res.status(422).json({ errors: paramsErrors.array() });
+  if (!paramsErrors.isEmpty())
+    return res.status(422).json({ errors: paramsErrors.array() });
 
   const { conversations, processNlu } = req.body;
   const { project_id: projectId, env } = req.params;
@@ -120,7 +121,6 @@ exports.importConversation = async function(req, res) {
     //delacred out of the forEach Block so it can be accessed later
     const invalidParseDatas = [];
     // add each prepared conversatin to the db, a promise all is used to ensure that all data is added before checking for errors
-    errors = [];
     await Promise.all(
       toAdd.map(async conversation => {
         Conversations.updateOne(
@@ -128,7 +128,7 @@ exports.importConversation = async function(req, res) {
           conversation,
           { upsert: true },
           function(err) {
-            if (err) errors.push(err);
+            if (err) throw err;
           }
         );
         if (processNlu) {
@@ -142,7 +142,7 @@ exports.importConversation = async function(req, res) {
           );
           if (parseDataToAdd && parseDataToAdd.length > 0) {
             await Activity.insertMany(parseDataToAdd, function(err) {
-              if (err) errors.push(err);
+              if (err) throw err;
             });
           }
           if (invalidParseData && invalidParseData.length > 0)
@@ -151,25 +151,11 @@ exports.importConversation = async function(req, res) {
       })
     );
 
-    if (errors.length > 0) {
-      return res.status(500).json(errors);
-    }
     //create a report of the errors, if any
-    const formatsError = {};
-    if (notValids && notValids.length > 0) {
-      formatsError.messageConversation =
-        "some conversation were not added, the field _id is missing";
-      formatsError.notValids = notValids;
-    }
-    if (invalidParseDatas.length > 0) {
-      formatsError.messageParseData =
-        "Some parseData have not been added to activity, the corresponding models could not be found";
-      formatsError.invalidParseDatas = invalidParseDatas;
-    }
+    const formatsError = formatsErrorsSummary(notValids, invalidParseDatas);
     //object not empty
-    if (Object.keys(formatsError).length !== 0) {
+    if (Object.keys(formatsError).length !== 0)
       return res.status(206).json(formatsError);
-    }
 
     return res
       .status(200)
@@ -177,6 +163,21 @@ exports.importConversation = async function(req, res) {
   } catch (err) {
     return res.status(err.code || 500).json(err);
   }
+};
+
+formatsErrorsSummary = function(notValids, invalidParseDatas) {
+  const formatsError = {};
+  if (notValids && notValids.length > 0) {
+    formatsError.messageConversation =
+      "some conversation were not added, the field _id is missing";
+    formatsError.notValids = notValids;
+  }
+  if (invalidParseDatas.length > 0) {
+    formatsError.messageParseData =
+      "Some parseData have not been added to activity, the corresponding models could not be found";
+    formatsError.invalidParseDatas = invalidParseDatas;
+  }
+  return formatsError;
 };
 
 getOldestTimeStamp = async function(env) {
@@ -189,7 +190,6 @@ getOldestTimeStamp = async function(env) {
   return 0;
 };
 
-
 exports.lastestImportValidator = [
   param(
     "env",
@@ -197,10 +197,10 @@ exports.lastestImportValidator = [
   ).isIn(["production", "staging", "development"])
 ];
 
-
 exports.lastestImport = async function(req, res) {
   const paramsErrors = validationResult(req);
-  if (!paramsErrors.isEmpty()) return res.status(422).json({ errors: paramsErrors.array() });
+  if (!paramsErrors.isEmpty())
+    return res.status(422).json({ errors: paramsErrors.array() });
 
   const { project_id: projectId } = req.params;
   const { env } = req.params;
