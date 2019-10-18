@@ -89,11 +89,17 @@ describe("## last import", () => {
         .get(
           "/conversations/pro1/environment/prodduction/latest-imported-event"
         )
-        .expect(httpStatus.BAD_REQUEST)
+        .expect(httpStatus.UNPROCESSABLE_ENTITY)
         .then(res => {
           expect(res.body).to.deep.equal({
-            error:
-              "environement should be one of: production, staging, development"
+            "errors": [
+                  {
+                    location: 'params',
+                    msg: 'environement should be one of: production, staging, development',
+                    param: 'env',
+                    value: 'prodduction',
+                  }
+                ]
           });
           done();
         })
@@ -111,10 +117,21 @@ describe("## import format checking", () => {
           dummy: [{ name: "test", confidence: 0.99 }],
           text: "blabla"
         })
-        .expect(httpStatus.BAD_REQUEST)
+        .expect(httpStatus.UNPROCESSABLE_ENTITY)
         .then(res => {
           expect(res.body).to.deep.equal({
-            error: "the body is missing conversations or processNlu, or both"
+            errors: [
+                  {
+                    location: 'body',
+                    msg: 'conversations should be an array',
+                    param: 'conversations'
+                  },
+                  {
+                    location: 'body',
+                    msg: 'processNlu should be an boolean',
+                    param: 'processNlu',
+                  }
+                ]
           });
           done();
         })
@@ -127,10 +144,17 @@ describe("## import format checking", () => {
           conversations: "bad",
           processNlu: false
         })
-        .expect(httpStatus.BAD_REQUEST)
+        .expect(httpStatus.UNPROCESSABLE_ENTITY)
         .then(res => {
           expect(res.body).to.deep.equal({
-            error: "conversations should be an array"
+            errors: [
+                  {
+                    location: 'body',
+                    msg: 'conversations should be an array',
+                    param: 'conversations',
+                    value: 'bad',
+                  }
+                ]
           });
           done();
         })
@@ -141,12 +165,19 @@ describe("## import format checking", () => {
         .post("/conversations/pro1/environment/production")
         .send({
           conversations: [],
-          processNlu: "false"
+          processNlu: "fallse"
         })
-        .expect(httpStatus.BAD_REQUEST)
+        .expect(httpStatus.UNPROCESSABLE_ENTITY)
         .then(res => {
           expect(res.body).to.deep.equal({
-            error: "processNlu should be an boolean"
+            errors: [
+                  {
+                    location: 'body',
+                    msg: 'processNlu should be an boolean',
+                    param: 'processNlu',
+                    value: 'fallse',
+                  }
+                ]
           });
           done();
         })

@@ -5,6 +5,12 @@ const {
   Activity
 } = require("../../models/models");
 const { getVerifiedProject } = require("../utils");
+const {
+  body,
+  validationResult,
+  param,
+  query
+} = require("express-validator/check");
 
 retreiveModelsIds = async function(projectId) {
   const { nlu_models: modelsIds } = await Projects.findOne({ _id: projectId })
@@ -84,33 +90,25 @@ createConversationsToAdd = function(conversations, env, projectId) {
   return { toAdd, notValids };
 };
 
+exports.importConversationValidator = [
+  param(
+    "env",
+    "environement should be one of: production, staging, development"
+  ).isIn(["production", "staging", "development"]),
+  param("project_id", "projectId should be a string").isString(),
+  body("conversations", "conversations should be an array").isArray(),
+  body("processNlu", "processNlu should be an boolean").isBoolean()
+];
+
 exports.importConversation = async function(req, res) {
+  const paramsErrors = validationResult(req);
+  if (!paramsErrors.isEmpty()) return res.status(422).json({ errors: paramsErrors.array() });
+
   const { conversations, processNlu } = req.body;
-  const { project_id: projectId } = req.params;
+  const { project_id: projectId, env } = req.params;
   const project = await getVerifiedProject(projectId, req);
   try {
     if (!project) throw { code: 401, error: "unauthorized" };
-    const { env } = req.params;
-    // checks for parameters correctness
-    if (!["production", "staging", "development"].includes(env)) {
-      return res.status(400).json({
-        error: "environement should be one of: production, staging, development"
-      });
-    }
-    if (conversations === undefined || processNlu === undefined) {
-      return res.status(400).json({
-        error: "the body is missing conversations or processNlu, or both"
-      });
-    }
-    if (!Array.isArray(conversations)) {
-      return res
-        .status(400)
-        .json({ error: "conversations should be an array" });
-    }
-
-    if (typeof processNlu !== "boolean") {
-      return res.status(400).json({ error: "processNlu should be an boolean" });
-    }
 
     oldestImport = await getOldestTimeStamp(env);
     const { toAdd, notValids } = createConversationsToAdd(
@@ -191,18 +189,24 @@ getOldestTimeStamp = async function(env) {
   return 0;
 };
 
+
+exports.lastestImportValidator = [
+  param(
+    "env",
+    "environement should be one of: production, staging, development"
+  ).isIn(["production", "staging", "development"])
+];
+
+
 exports.lastestImport = async function(req, res) {
+  const paramsErrors = validationResult(req);
+  if (!paramsErrors.isEmpty()) return res.status(422).json({ errors: paramsErrors.array() });
+
   const { project_id: projectId } = req.params;
   const { env } = req.params;
   try {
     const project = await getVerifiedProject(projectId, req);
     if (!project) throw { code: 401, error: "unauthorized" };
-    // checks for parameters correctness
-    if (!["production", "staging", "development"].includes(env)) {
-      return res.status(400).json({
-        error: "environement should be one of: production, staging, development"
-      });
-    }
     const oldest = await getOldestTimeStamp(env);
     return res.status(200).json({ timestamp: oldest });
   } catch (err) {
