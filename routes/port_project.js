@@ -144,6 +144,31 @@ const unzipFile = async (body) => {
     return JSON.parse(data);
 }
 
+const gatherCollectionsForExport = async (project, models, excludedCollections) => {
+    const response = { project, models };
+    for (let col in collectionsWithModelId) {
+        if (!excludedCollections.includes(col)) {
+            response[col] = await collectionsWithModelId[col]
+                .find({ modelId: { $in: project.nlu_models } })
+                .lean();
+        }
+    }
+    for (let col in collectionsWithProjectId) {
+        if (!excludedCollections.includes(col)) {
+            response[col] = await collectionsWithProjectId[col].find({ projectId: project._id }).lean();
+        }
+    }
+    response.timestamp = new Date().getTime();
+    return response;
+}
+
+const returnResponse = async (res, response, filename) => {
+    const result = res.status(200).attachment(filename)
+    if (filename.slice(-4) === 'json') return result.json(response);
+    const zippedFile = await zipFile(response);
+    return result.send(zippedFile);
+}
+
 exports.exportProjectValidator = [];
 
 exports.exportProject = async function(req, res) {
@@ -158,30 +183,11 @@ exports.exportProject = async function(req, res) {
         const project = await getVerifiedProject(projectId, req);
         if (!project) throw { code: 401, error: 'unauthorized' };
         const models = await NLUModels.find({ _id: { $in: project.nlu_models } }).lean();
-        const response = { project, models };
-        for (let col in collectionsWithModelId) {
-            if (!excludedCollections.includes(col)) {
-                response[col] = await collectionsWithModelId[col]
-                    .find({ modelId: { $in: project.nlu_models } })
-                    .lean();
-            }
-        }
-        for (let col in collectionsWithProjectId) {
-            if (!excludedCollections.includes(col)) {
-                response[col] = await collectionsWithProjectId[col].find({ projectId }).lean();
-            }
-        }
-        response.timestamp = new Date().getTime();
+        const response = await gatherCollectionsForExport(project, models, excludedCollections);
         
-        if (output === 'json') {
-            return res.status(200)
-                .attachment(`${project.name}-${response.timestamp}.json`)
-                .json(response);
-        }
-        const zippedBackup = await zipFile(response);
-        return res.status(200)
-            .attachment(`${project.name}-${response.timestamp}.botfront`)
-            .send(zippedBackup);
+        const filename = `${project.name}-${response.timestamp}.${output === 'json' ? 'json' : 'botfront'}`;
+        
+        return await returnResponse(res, response, filename);
     } catch (err) {
         return res.status(500).json(err);
     }
