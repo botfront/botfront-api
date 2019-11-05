@@ -145,7 +145,8 @@ const unzipFile = async (body) => {
 }
 
 const gatherCollectionsForExport = async (project, models, excludedCollections) => {
-    const response = { project, models };
+    const response = { project, models }; // here
+    delete project.training;
     for (let col in collectionsWithModelId) {
         if (!excludedCollections.includes(col)) {
             response[col] = await collectionsWithModelId[col]
@@ -220,6 +221,8 @@ exports.importProject = async function(req, res) {
             if (!validator(body)) throw { code: 422, error: message };
         })
         const backup = nativizeProject(projectId, project.name, body);
+        delete backup.project.training
+
         for (let col in collections) {
             await overwriteCollection(projectId, project.nlu_models, col, backup);
         }

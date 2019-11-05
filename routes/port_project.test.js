@@ -40,9 +40,11 @@ describe('## Export', () => {
                 .get('/project/one/export?output=json')
                 .expect(httpStatus.OK)
                 .then(res => {
+                    let expectedProject = { ...exportPayloads[0] }
+                    delete expectedProject.project.training
                     const { timestamp, ...body } = res.body;
                     expect(timestamp).to.exist;
-                    expect(body).to.deep.equal(exportPayloads[0]);
+                    expect(body).to.deep.equal(expectedProject);
                     done();
                 })
                 .catch(done);
@@ -52,7 +54,9 @@ describe('## Export', () => {
                 .get('/project/one/export?output=json&conversations=false&evaluations=0')
                 .expect(httpStatus.OK)
                 .then(res => {
-                    const { evaluations, conversations, ...rest } = exportPayloads[0];
+                    let expectedProject = { ...exportPayloads[0] }
+                    delete expectedProject.project.training
+                    const { evaluations, conversations, ...rest } = expectedProject;
                     const { timestamp, ...body } = res.body;
                     expect(timestamp).to.exist;
                     expect(body).to.deep.equal(rest);
@@ -99,6 +103,7 @@ describe('## Import', () => {
                         nlu_models: exportFileNluModels,
                         ...exportFileProject
                     } = { ...exportPayloads[1].project };
+                    delete exportFileProject.training
                     const storyGroup = await allCollections.storyGroups
                         .findOne({ _id: { $nin: [storyGroupId] } }, { _id: 1 })
                         .lean();
@@ -116,6 +121,7 @@ describe('## Import', () => {
                     storyGroupId = storyGroup._id; // remember storyGroupId
                     checkpoints = [[checkpoint._id]]
 
+                    
                     expect(newProjectId).to.be.equal(projectId); // project id didn't change
                     expect(newProjectName).to.be.equal(projectName); // project name didn't change
                     expect(newProject).to.be.deep.equal(exportFileProject); // everything else in project is as in backup
